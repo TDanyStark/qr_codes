@@ -1,25 +1,22 @@
-import { Routes, Route, Link } from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom'
 import UsersPage from './pages/UsersPage'
 import LoginEmail from './pages/LoginEmail'
 import LoginCode from './pages/LoginCode'
+import QrCodesPage from './pages/QrCodesPage'
+import Layout from './components/Layout'
 
 export default function AppRoutes() {
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      <nav className="bg-gray-800/60 p-4 mb-6">
-        <div className="max-w-3xl mx-auto flex items-center justify-between">
-          <Link to="/" className="text-white font-medium">Iniciar sesión</Link>
-          <Link to="/users" className="text-blue-400 font-medium">Usuarios</Link>
-        </div>
-      </nav>
+    <Routes>
+      {/* Auth routes - no sidebar/layout */}
+      <Route path="/" element={<LoginEmail />} />
+      <Route path="/login/code" element={<LoginCode />} />
 
-      <main className="max-w-3xl mx-auto px-4">
-        <Routes>
-          <Route path="/" element={<LoginEmail />} />
-          <Route path="/login/code" element={<LoginCode />} />
-          <Route path="/users" element={<UsersPage />} />
-        </Routes>
-      </main>
-    </div>
+      {/* App routes - these render inside the Layout (which includes the Sidebar) */}
+      <Route element={<Layout />}>
+        <Route path="/qr_codes" element={<QrCodesPage />} />
+        <Route path="/users" element={<UsersPage />} />
+      </Route>
+    </Routes>
   )
 }

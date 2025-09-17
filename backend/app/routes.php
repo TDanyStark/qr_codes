@@ -29,4 +29,15 @@ return function (App $app) {
             $group->get('/{id}', ViewUserAction::class);
         });
     });
+
+    $app->get('/r/{code}', function (Request $request, Response $response, array $args) {
+        $code = $args['code'];
+        // Aquí puedes implementar la lógica para buscar la URL asociada al código en tu base de datos
+        // Por simplicidad, vamos a redirigir a una URL fija
+        $url = 'https://www.google.com'; // Reemplaza esto con la URL real asociada al código
+
+        return $response
+            ->withHeader('Location', $url)
+            ->withStatus(302);
+    });
 };
