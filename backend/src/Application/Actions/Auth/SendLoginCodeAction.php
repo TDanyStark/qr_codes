@@ -25,8 +25,6 @@ class SendLoginCodeAction extends Action
 
   protected function action(): \Psr\Http\Message\ResponseInterface
   {
-    $this->logger->info("peticion de codigo de login");
-
     $data = $this->getFormData();
     $email = $data['email'] ?? null;
     if (!$email) {
@@ -55,7 +53,6 @@ class SendLoginCodeAction extends Action
       "<p>Si no lo solicitaste, ignora este mensaje.</p>";
     try {
       $this->mailer->send($email, $subject, $body);
-      $this->logger->info('Login code emailed', ['email' => $email]);
     } catch (MailException $e) {
       // Log and continue - do not reveal mail internal errors to client
       $this->logger->error('Failed to send login code email', ['email' => $email, 'error' => $e->getMessage()]);
