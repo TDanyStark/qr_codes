@@ -31,17 +31,24 @@ export default function LoginCode() {
         return;
       }
 
-      const { data } = await axios.post("/api/login/code/verify", {
+      const resp = await axios.post("/api/login/code/verify", {
         email: pending,
         code,
       });
-      if (data && data.ok) {
+
+      // Backend returns a wrapped response: { statusCode, data: { ok, token, message } }
+      const body = resp?.data?.data ?? resp?.data ?? null;
+      const ok = body?.ok;
+      const token = body?.token as string | undefined;
+      const message = body?.message as string | undefined;
+
+      if (ok) {
         // store token (simple localStorage for now) and clear pending
-        if (data.token) localStorage.setItem("token", data.token);
+        if (token) localStorage.setItem("token", token);
         pendingEmail.clearPending();
         navigate("/users");
       } else {
-        setError(data?.message || "Código inválido");
+        setError(message || "Código inválido");
       }
     } catch (err: unknown) {
       let msg: string | null = null;

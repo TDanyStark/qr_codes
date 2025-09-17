@@ -82,8 +82,23 @@ class SmtpMailer implements MailerInterface
             $mail->setFrom($this->config['from']);
             $mail->addAddress($to);
             $mail->Subject = $subject;
-            $mail->Body = $body;
-            $mail->AltBody = strip_tags($body);
+            // Detect if the body contains HTML tags; if so, send as HTML.
+            $isHtml = (bool) (preg_match('/<\s*\/?[a-z]+[^>]*>/', $body));
+
+            if ($isHtml) {
+                $mail->isHTML(true);
+                // Keep body as-is (HTML). Provide an AltBody fallback as plain-text.
+                $mail->Body = $body;
+                $alt = strip_tags($body);
+                // Normalize newlines in AltBody for better readability in plain clients.
+                $mail->AltBody = preg_replace('/\r\n|\r|\n/', "\r\n", $alt);
+            } else {
+                // Plain-text mode: normalize newlines to CRLF which is recommended in email bodies.
+                $mail->isHTML(false);
+                $normalizedBody = preg_replace('/\r\n|\r|\n/', "\r\n", $body);
+                $mail->Body = $normalizedBody;
+                $mail->AltBody = strip_tags($normalizedBody);
+            }
             $mail->send();
         } catch (PHPMailerException $e) {
             // include debug output if present for diagnosis, but avoid logging passwords
