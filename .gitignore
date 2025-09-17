@@ -1,0 +1,4 @@
+# Ignorar los .gitignore internos
+backend/.gitignore
+frontend/.gitignore
+
