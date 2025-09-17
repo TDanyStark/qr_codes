@@ -18,6 +18,21 @@ class Settings implements SettingsInterface
      */
     public function get(string $key = '')
     {
-        return (empty($key)) ? $this->settings : $this->settings[$key];
+        if (empty($key)) {
+            return $this->settings;
+        }
+
+        // support dot notation for nested settings, e.g. 'mail.from'
+        $parts = explode('.', $key);
+        $value = $this->settings;
+
+        foreach ($parts as $part) {
+            if (!is_array($value) || !array_key_exists($part, $value)) {
+                return null;
+            }
+            $value = $value[$part];
+        }
+
+        return $value;
     }
 }

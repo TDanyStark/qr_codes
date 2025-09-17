@@ -25,6 +25,8 @@ class SendLoginCodeAction extends Action
 
     protected function action(): \Psr\Http\Message\ResponseInterface
     {
+        $this->logger->info("peticion de codigo de login");
+
         $data = $this->getFormData();
         $email = $data['email'] ?? null;
         if (!$email) {
