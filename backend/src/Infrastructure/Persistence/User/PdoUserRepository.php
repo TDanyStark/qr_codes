@@ -144,4 +144,41 @@ class PdoUserRepository implements UserRepository
         if (!$row) return null;
         return $row['codigo'] ?? null;
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function create(User $user): User
+    {
+        $stmt = $this->pdo->prepare('
+            INSERT INTO users (name, email, rol, codigo, fecha_expedicion) 
+            VALUES (:name, :email, :rol, :codigo, :fecha_expedicion)
+        ');
+        
+        $fechaExpedicion = null;
+        if ($user->getFechaExpedicion() !== null) {
+            $fechaExpedicion = $user->getFechaExpedicion()->format('Y-m-d');
+        }
+        
+        $stmt->execute([
+            'name' => $user->getName(),
+            'email' => $user->getEmail(),
+            'rol' => $user->getRol(),
+            'codigo' => $user->getCodigo(),
+            'fecha_expedicion' => $fechaExpedicion
+        ]);
+        
+        $id = (int) $this->pdo->lastInsertId();
+        
+        // Return the user with the generated ID and created_at timestamp
+        return new User(
+            $id,
+            $user->getName(),
+            $user->getEmail(),
+            $user->getRol(),
+            $user->getCodigo(),
+            $user->getFechaExpedicion(),
+            new \DateTimeImmutable() // created_at will be set by the database
+        );
+    }
 }

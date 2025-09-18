@@ -40,4 +40,11 @@ interface UserRepository
      * @return string|null
      */
     public function getCodeByEmail(string $email): ?string;
+
+    /**
+     * Create a new user
+     * @param User $user
+     * @return User The user with the generated ID
+     */
+    public function create(User $user): User;
 }
