@@ -13,6 +13,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
+import colorForId from "@/lib/colorForId";
 import { Button } from "@/components/ui/button";
 import { ChartPie, SquarePen, ExternalLink } from "lucide-react";
 import { toast, Toaster } from "sonner";
@@ -139,9 +140,16 @@ export default function QrCodesPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="secondary">
-                        {q.owner_name ?? "Unknown"}
-                      </Badge>
+                      {(() => {
+                        const { bgClass, textClass } = colorForId(q.owner_user_id);
+                        // Compose classes: keep the badge variant neutral and augment with bg/text
+                        const cls = `${bgClass} ${textClass}`;
+                        return (
+                          <Badge className={cls}>
+                            {q.owner_name ?? "Unknown"}
+                          </Badge>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
