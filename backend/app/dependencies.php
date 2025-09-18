@@ -65,5 +65,9 @@ return function (ContainerBuilder $containerBuilder) {
 
             return new BasicMailer($logger, $settings);
         }
+        ,
+        \App\Application\Middleware\AdminRoleMiddleware::class => function (ContainerInterface $c) {
+            return new \App\Application\Middleware\AdminRoleMiddleware();
+        }
     ]);
 };

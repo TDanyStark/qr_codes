@@ -12,6 +12,7 @@ use Slim\Interfaces\RouteCollectorProxyInterface as Group;
 use \App\Application\Actions\Auth\SendLoginCodeAction;
 use \App\Application\Actions\Auth\VerifyLoginCodeAction;
 use \App\Application\Middleware\JwtAuthMiddleware;
+use \App\Application\Middleware\AdminRoleMiddleware;
 
 return function (App $app) {
     $app->options('/{routes:.*}', function (Request $request, Response $response) {
@@ -28,7 +29,9 @@ return function (App $app) {
         $group->group('/users', function (Group $group) {
             $group->get('', ListUsersAction::class);
             $group->get('/{id}', ViewUserAction::class);
-        })->add(JwtAuthMiddleware::class);
+        })
+        ->add(AdminRoleMiddleware::class)
+        ->add(JwtAuthMiddleware::class);
 
         // Token verify endpoint - returns 200 if token is valid (middleware will reject otherwise)
         $group->get('/token/verify', function (Request $request, Response $response) {
