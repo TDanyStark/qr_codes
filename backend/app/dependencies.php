@@ -14,6 +14,7 @@ use App\Infrastructure\Security\JwtService;
 use \App\Infrastructure\Mailer\MailerInterface;
 use \App\Infrastructure\Mailer\BasicMailer;
 use \App\Infrastructure\Mailer\SmtpMailer;
+use App\Infrastructure\Security\JwtServiceInterface;
 
 
 return function (ContainerBuilder $containerBuilder) {
@@ -50,9 +51,8 @@ return function (ContainerBuilder $containerBuilder) {
 
             return new PDO($dsn, $user, $pass, $options);
         },
-        JwtService::class => function (ContainerInterface $c) {
-            $settings = $c->get(SettingsInterface::class);
-            return new JwtService($settings);
+        JwtServiceInterface::class => function (ContainerInterface $c) {
+            return new JwtService($c->get(SettingsInterface::class));
         },
         MailerInterface::class => function (ContainerInterface $c) {
             $settings = $c->get(SettingsInterface::class);

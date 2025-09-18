@@ -7,7 +7,7 @@ namespace App\Infrastructure\Security;
 use App\Application\Settings\SettingsInterface;
 use Firebase\JWT\JWT;
 
-class JwtService
+class JwtService implements JwtServiceInterface
 {
     private string $secret;
     private int $expiryDays;

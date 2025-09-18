@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Middleware;
 
-use App\Infrastructure\Security\JwtService;
+use App\Infrastructure\Security\JwtServiceInterface;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Server\MiddlewareInterface as Middleware;
@@ -12,12 +12,13 @@ use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
 use Psr\Log\LoggerInterface;
 use Slim\Exception\HttpUnauthorizedException;
 
+
 class JwtAuthMiddleware implements Middleware
 {
-    private JwtService $jwtService;
+    private JwtServiceInterface $jwtService;
     private LoggerInterface $logger;
 
-    public function __construct(JwtService $jwtService, LoggerInterface $logger)
+    public function __construct(JwtServiceInterface $jwtService, LoggerInterface $logger)
     {
         $this->jwtService = $jwtService;
         $this->logger = $logger;

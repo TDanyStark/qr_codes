@@ -6,16 +6,16 @@ namespace App\Application\Actions\Auth;
 
 use App\Application\Actions\Action;
 use App\Domain\User\UserRepository;
-use App\Infrastructure\Security\JwtService;
+use App\Infrastructure\Security\JwtServiceInterface;
 use Psr\Log\LoggerInterface;
 use Slim\Exception\HttpBadRequestException;
 
 class VerifyLoginCodeAction extends Action
 {
     private UserRepository $userRepository;
-    private JwtService $jwtService;
+    private JwtServiceInterface $jwtService;
 
-    public function __construct(LoggerInterface $logger, UserRepository $userRepository, JwtService $jwtService)
+    public function __construct(LoggerInterface $logger, UserRepository $userRepository, JwtServiceInterface $jwtService)
     {
         parent::__construct($logger);
         $this->userRepository = $userRepository;
