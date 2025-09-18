@@ -28,4 +28,22 @@ class JwtService
 
         return JWT::encode($token, $this->secret, 'HS256');
     }
+
+    /**
+     * Decode and validate a JWT. Throws on invalid/expired.
+     *
+     * @return object
+     */
+    public function decode(string $token)
+    {
+        return JWT::decode($token, new \Firebase\JWT\Key($this->secret, 'HS256'));
+    }
+
+    /**
+     * Return secret (for advanced usage)
+     */
+    public function getSecret(): string
+    {
+        return $this->secret;
+    }
 }
