@@ -6,24 +6,18 @@ namespace App\Application\Services\QrCode;
 
 use App\Domain\QrCode\QrCode as DomainQrCode;
 use App\Domain\QrCode\QrCodeRepository;
-use App\Application\Settings\SettingsInterface;
 use Endroid\QrCode\Writer\PngWriter;
 use Endroid\QrCode\Writer\SvgWriter;
 use Endroid\QrCode\Color\Color;
 use Endroid\QrCode\QrCode as EndroidQrCode;
-use Psr\Log\LoggerInterface;
 
 class QrCodeCreator
 {
     private QrCodeRepository $qrCodeRepository;
-    private SettingsInterface $settings;
-    private LoggerInterface $logger;
 
-    public function __construct(QrCodeRepository $qrCodeRepository, SettingsInterface $settings, LoggerInterface $logger)
+    public function __construct(QrCodeRepository $qrCodeRepository)
     {
         $this->qrCodeRepository = $qrCodeRepository;
-        $this->settings = $settings;
-        $this->logger = $logger;
     }
 
     /**
