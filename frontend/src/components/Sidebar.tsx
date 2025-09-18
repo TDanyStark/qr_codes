@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { jwtDecode } from 'jwt-decode'
+import { isAdmin, clearToken } from '../lib/auth'
 
 type Item = { to: string; label: string }
 
@@ -10,26 +10,12 @@ export default function Sidebar() {
   const navigate = useNavigate()
 
   function handleLogout() {
-    localStorage.removeItem('token')
+    clearToken()
     navigate('/')
   }
 
-  // determine role from token to conditionally show admin items
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-  const payload = (() => {
-    if (!token) return null
-    try {
-      return jwtDecode(token)
-    } catch {
-      return null
-    }
-  })()
-
-  const obj = payload && typeof payload === 'object' ? (payload as unknown as Record<string, unknown>) : null
-  const rol = obj && 'rol' in obj ? obj['rol'] : null
-
   const items: Item[] = [...baseItems]
-  if (rol === 'admin') {
+  if (isAdmin()) {
     items.push({ to: '/users', label: 'Users' })
   }
 
