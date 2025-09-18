@@ -15,6 +15,9 @@ use \App\Infrastructure\Mailer\MailerInterface;
 use \App\Infrastructure\Mailer\BasicMailer;
 use \App\Infrastructure\Mailer\SmtpMailer;
 use App\Infrastructure\Security\JwtServiceInterface;
+use \App\Application\Middleware\AdminRoleMiddleware;
+
+use \App\Application\Services\QrCode\QrCodeCreator;
 
 
 return function (ContainerBuilder $containerBuilder) {
@@ -64,10 +67,11 @@ return function (ContainerBuilder $containerBuilder) {
             }
 
             return new BasicMailer($logger, $settings);
-        }
-        ,
-        \App\Application\Middleware\AdminRoleMiddleware::class => function (ContainerInterface $c) {
-            return new \App\Application\Middleware\AdminRoleMiddleware();
-        }
+        },
+        AdminRoleMiddleware::class => function (ContainerInterface $c) {
+            return new AdminRoleMiddleware();
+        },
+        // Application services
+        QrCodeCreator::class => \DI\autowire(QrCodeCreator::class),
     ]);
 };

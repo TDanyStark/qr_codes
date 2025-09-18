@@ -5,27 +5,24 @@ declare(strict_types=1);
 namespace App\Application\Actions\QrCode;
 
 use App\Application\Actions\Action;
-use App\Domain\QrCode\QrCode as DomainQrCode;
-use Endroid\QrCode\Writer\PngWriter;
-use Endroid\QrCode\Writer\SvgWriter;
-use Endroid\QrCode\Color\Color;
-use Endroid\QrCode\QrCode as EndroidQrCode;
+use App\Application\Services\QrCode\QrCodeCreator;
 use Psr\Http\Message\ResponseInterface as Response;
 
 class CreateQrCodeAction extends QrCodeAction
 {
-    // NOTE: This action now generates PNG only (SVG generation removed intentionally).
+    private QrCodeCreator $creator;
+
+    public function __construct(\Psr\Log\LoggerInterface $logger, \App\Domain\QrCode\QrCodeRepository $qrCodeRepository, QrCodeCreator $creator)
+    {
+        parent::__construct($logger, $qrCodeRepository);
+        $this->creator = $creator;
+    }
+
     protected function action(): Response
     {
         $data = $this->getFormData();
 
-        $targetUrl = $data['target_url'] ?? null;
-        $name = $data['name'] ?? null;
-        $foreground = $data['foreground'] ?? '#000000';
-        $background = $data['background'] ?? '#ffffff';
-    // Force PNG-only output. Ignore any requested format.
-
-        if (empty($targetUrl)) {
+        if (empty($data['target_url'] ?? null)) {
             return $this->respondWithData(['error' => 'target_url is required'], 400);
         }
 
@@ -42,104 +39,12 @@ class CreateQrCodeAction extends QrCodeAction
             return $this->respondWithData(['error' => 'unauthenticated'], 401);
         }
 
-        // generate a token
-        $token = bin2hex(random_bytes(16));
-
-        // create domain entity and persist
-        $domainQr = new DomainQrCode(null, $token, $userId, $targetUrl, $name);
-        $created = $this->qrCodeRepository->create($domainQr);
-
-        // prepare folders
-        // Ensure we write into the backend/public folder. Walk up from current dir to find a folder named 'backend'.
-        $dir = __DIR__;
-        $backendRoot = null;
-        while ($dir && $dir !== dirname($dir)) {
-            if (basename($dir) === 'backend') {
-                $backendRoot = $dir;
-                break;
-            }
-            $dir = dirname($dir);
+        try {
+            $result = $this->creator->createFromData($data, $userId);
+        } catch (\InvalidArgumentException $e) {
+            return $this->respondWithData(['error' => $e->getMessage()], 400);
         }
 
-        if ($backendRoot === null) {
-            // fallback to previous behavior (5 levels up)
-            $publicDir = dirname(__DIR__, 5) . '/public';
-        } else {
-            $publicDir = $backendRoot . '/public';
-        }
-
-        $tmpDir = $publicDir . '/tmp/qrcodes';
-        if (!is_dir($tmpDir)) {
-            mkdir($tmpDir, 0775, true);
-        }
-
-    $pngPath = $tmpDir . '/' . $token . '.png';
-    $svgPath = $tmpDir . '/' . $token . '.svg';
-
-        // parse colors from hex to Color objects
-        $fgColor = $this->parseHexColor($foreground);
-        $bgColor = $this->parseHexColor($background);
-
-        // build PNG using QrCode + PngWriter
-        // Build the redirect URL using environment variable (URL_BASE or APP_URL)
-        $baseUrl = getenv('URL_BASE') ? getenv('URL_BASE') : '';
-        $baseUrl = rtrim($baseUrl, '/') ;
-        $qrData = ($baseUrl !== '' ? $baseUrl : '') . '/r/' . $token;
-
-        $qrForPng = new EndroidQrCode(
-            data: $qrData,
-            size: 1000,
-            margin: 10,
-            foregroundColor: $fgColor,
-            backgroundColor: $bgColor
-        );
-
-        $pngWriter = new PngWriter();
-        $resultPng = $pngWriter->write($qrForPng);
-        file_put_contents($pngPath, $resultPng->getString());
-
-        // Also build and save SVG
-        $svgWriter = new SvgWriter();
-        // For SVG we can set larger size or rely on vector scaling; reuse colors
-        $qrForSvg = new EndroidQrCode(
-            data: $qrData,
-            size: 1000,
-            margin: 10,
-            foregroundColor: $fgColor,
-            backgroundColor: $bgColor
-        );
-
-        $resultSvg = $svgWriter->write($qrForSvg);
-        // Svg writer provides string output as well
-        file_put_contents($svgPath, $resultSvg->getString());
-
-        // Return the PNG path and the redirect URL the QR points to (frontend may use this link)
-        $links = [
-            'png' => '/tmp/qrcodes/' . $token . '.png',
-            'svg' => '/tmp/qrcodes/' . $token . '.svg',
-            'redirect' => $qrData,
-        ];
-
-        return $this->respondWithData([
-            'qr' => $created,
-            'links' => $links,
-        ], 201);
+        return $this->respondWithData($result, 201);
     }
-
-    private function parseHexColor(string $hex): Color
-    {
-        $hex = ltrim($hex, '#');
-        if (strlen($hex) === 3) {
-            $r = hexdec(str_repeat($hex[0], 2));
-            $g = hexdec(str_repeat($hex[1], 2));
-            $b = hexdec(str_repeat($hex[2], 2));
-        } else {
-            $r = hexdec(substr($hex, 0, 2));
-            $g = hexdec(substr($hex, 2, 2));
-            $b = hexdec(substr($hex, 4, 2));
-        }
-
-        return new Color($r, $g, $b);
-    }
-
 }
