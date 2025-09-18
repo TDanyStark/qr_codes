@@ -14,6 +14,8 @@ use \App\Application\Actions\Auth\SendLoginCodeAction;
 use \App\Application\Actions\Auth\VerifyLoginCodeAction;
 use \App\Application\Middleware\JwtAuthMiddleware;
 use \App\Application\Middleware\AdminRoleMiddleware;
+use \App\Application\Actions\QrCode\ListQrCodesAction;
+use \App\Application\Actions\QrCode\CreateQrCodeAction;
 
 return function (App $app) {
     $app->options('/{routes:.*}', function (Request $request, Response $response) {
@@ -37,7 +39,8 @@ return function (App $app) {
 
         // QR Codes endpoints
         $group->group('/qrcodes', function (Group $group) {
-            $group->get('', \App\Application\Actions\QrCode\ListQrCodesAction::class);
+            $group->get('', ListQrCodesAction::class);
+            $group->post('', CreateQrCodeAction::class);
         })->add(JwtAuthMiddleware::class);
 
         // Token verify endpoint - returns 200 if token is valid (middleware will reject otherwise)
