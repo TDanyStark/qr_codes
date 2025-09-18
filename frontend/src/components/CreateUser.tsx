@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -33,6 +33,7 @@ export default function CreateUser({ onUserCreated }: CreateUserProps) {
     email: "",
     rol: "user" as "user" | "admin",
   });
+  const nameInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,7 +85,48 @@ export default function CreateUser({ onUserCreated }: CreateUserProps) {
       setFormData({ name: "", email: "", rol: "user" });
       setError(null);
     }
+    // If opening, focus name input (give time for dialog to render)
+    if (newOpen) {
+      setTimeout(() => {
+        // First try the ref (if underlying Input exposes it), otherwise fallback to getElementById
+        const el = nameInputRef.current || document.getElementById("name");
+        if (el && typeof (el as HTMLInputElement).focus === "function") {
+          (el as HTMLInputElement).focus();
+          // place cursor at end
+          const val = (el as HTMLInputElement).value || "";
+          try {
+            (el as HTMLInputElement).setSelectionRange(val.length, val.length);
+          } catch {
+            // ignore if not supported
+          }
+        }
+      }, 50);
+    }
   };
+
+  // Global keyboard shortcut: press 'n' or 'N' to open the Create User dialog
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      // Ignore when any modifier is pressed
+      if (e.ctrlKey || e.altKey || e.metaKey) return;
+
+      // Do not trigger if focus is in an editable field
+      const active = document.activeElement;
+      if (active) {
+        const tag = active.tagName.toLowerCase();
+        const isEditable = tag === "input" || tag === "textarea" || (active as HTMLElement).isContentEditable;
+        if (isEditable) return;
+      }
+
+      if (e.key === "n" || e.key === "N") {
+        e.preventDefault();
+        setOpen(true);
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -104,6 +146,7 @@ export default function CreateUser({ onUserCreated }: CreateUserProps) {
             <Label htmlFor="name">Nombre</Label>
             <Input
               id="name"
+              ref={nameInputRef}
               value={formData.name}
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
               placeholder="Nombre completo"
