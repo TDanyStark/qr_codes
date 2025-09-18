@@ -26,7 +26,7 @@ class PdoUserRepository implements UserRepository
      */
     public function findAll(): array
     {
-        $stmt = $this->pdo->query('SELECT id, name, email, rol, codigo, fecha_expedicion, created_at, password FROM users ORDER BY id');
+        $stmt = $this->pdo->query('SELECT id, name, email, rol, codigo, fecha_expedicion, created_at FROM users ORDER BY id');
         $rows = $stmt->fetchAll();
 
         $users = [];

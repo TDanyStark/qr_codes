@@ -11,7 +11,16 @@ type User = {
 }
 
 async function fetchUsers(): Promise<User[]> {
-  const res = await axios.get('/api/users')
+  const token = localStorage.getItem('token')
+  if (!token) {
+    throw new Error('No auth token found')
+  }
+
+  const res = await axios.get('/api/users', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
   const body = res.data as { statusCode?: number; data?: User[] }
   return body.data ?? []
 }
