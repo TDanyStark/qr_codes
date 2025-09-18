@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
+import CreateUser from '@/components/CreateUser'
 
 type User = {
   id: number
@@ -26,6 +27,7 @@ async function fetchUsers(): Promise<User[]> {
 }
 
 export default function UsersPage() {
+  const queryClient = useQueryClient()
   const { data: users = [], isLoading, isError, error } = useQuery({ queryKey: ['users'], queryFn: fetchUsers })
 
   const errorMessage = useMemo(() => {
@@ -33,36 +35,44 @@ export default function UsersPage() {
     return error?.message ?? 'Error fetching users'
   }, [isError, error])
 
+  const handleUserCreated = () => {
+    // Refresh the users list when a new user is created
+    queryClient.invalidateQueries({ queryKey: ['users'] })
+  }
+
   return (
     <div className="p-6 max-w-5xl mx-auto">
-      <h1 className="text-2xl font-semibold mb-4 text-gray-100">Usuarios</h1>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-semibold text-foreground">Usuarios</h1>
+        <CreateUser onUserCreated={handleUserCreated} />
+      </div>
 
       {isLoading && (
-        <div className="text-gray-400">Cargando usuarios...</div>
+        <div className="text-muted-foreground">Cargando usuarios...</div>
       )}
 
       {isError && (
-        <div className="text-red-500">Error: {errorMessage}</div>
+        <div className="text-destructive">Error: {errorMessage}</div>
       )}
 
       {!isLoading && !isError && (
-        <div className="bg-gray-800 shadow rounded-md overflow-hidden">
-          <ul className="divide-y divide-gray-700">
+        <div className="bg-card shadow rounded-md overflow-hidden border border-border">
+          <ul className="divide-y divide-border">
             {users.length === 0 && (
-              <li className="p-4 text-gray-400">No hay usuarios.</li>
+              <li className="p-4 text-muted-foreground">No hay usuarios.</li>
             )}
             {users.map((u: User) => (
               <li key={u.id} className="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div>
-                  <div className="font-medium text-gray-100">{u.name}</div>
-                  <div className="text-sm text-gray-400">{u.email}</div>
+                  <div className="font-medium text-foreground">{u.name}</div>
+                  <div className="text-sm text-muted-foreground">{u.email}</div>
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <div className="text-sm text-gray-400">ID: {u.id}</div>
-                  <div className="text-xs px-2 py-1 rounded bg-gray-700 text-gray-200">{u.rol}</div>
+                  <div className="text-sm text-muted-foreground">ID: {u.id}</div>
+                  <div className="text-xs px-2 py-1 rounded bg-secondary text-secondary-foreground">{u.rol}</div>
                   {u.created_at && (
-                    <div className="text-xs text-gray-500">{new Date(u.created_at).toLocaleString()}</div>
+                    <div className="text-xs text-muted-foreground">{new Date(u.created_at).toLocaleString()}</div>
                   )}
                 </div>
               </li>
