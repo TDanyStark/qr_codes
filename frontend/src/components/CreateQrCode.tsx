@@ -11,13 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+// ...existing code... (select removed because frontend now only supports PNG)
 import axios from "axios";
 
 interface CreateQrCodeProps {
@@ -33,8 +27,8 @@ export default function CreateQrCode({ onQrCreated }: CreateQrCodeProps) {
     name: "",
     foreground: "#000000",
     background: "#ffffff",
-    format: "png" as "png" | "svg",
   });
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const targetInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -58,23 +52,31 @@ export default function CreateQrCode({ onQrCreated }: CreateQrCodeProps) {
         name: formData.name || undefined,
         foreground: formData.foreground,
         background: formData.background,
-        format: formData.format,
+        format: "png",
       };
 
-      await axios.post("/api/qrcodes", payload, {
+      const res = await axios.post("/api/qrcodes", payload, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      // If success, reset & close
-      setFormData({ target_url: "", name: "", foreground: "#000000", background: "#ffffff", format: "png" });
-      setOpen(false);
+      // If success, show preview image returned by backend and keep dialog open
+      // Support both res.data.links.png and res.data.data.links.png shapes
+      console.debug("CreateQrCode response", res?.data);
+      const pngUrl =
+        res?.data?.links?.png ?? res?.data?.data?.links?.png ?? null;
+      if (pngUrl) {
+        setPreviewUrl(pngUrl);
+      }
+      // notify parent that a QR was created
       onQrCreated?.();
     } catch (err: unknown) {
       let message = "Error al crear QR";
       if (err && typeof err === "object" && "response" in err) {
-        const axiosError = err as { response?: { data?: { message?: string } } };
+        const axiosError = err as {
+          response?: { data?: { message?: string } };
+        };
         message = axiosError.response?.data?.message || message;
       } else if (err && typeof err === "object" && "message" in err) {
         const errorWithMessage = err as { message: string };
@@ -89,13 +91,20 @@ export default function CreateQrCode({ onQrCreated }: CreateQrCodeProps) {
   const handleOpenChange = (newOpen: boolean) => {
     setOpen(newOpen);
     if (!newOpen) {
-      // Reset form when closing
-      setFormData({ target_url: "", name: "", foreground: "#000000", background: "#ffffff", format: "png" });
+      // Reset form and preview when closing
+      setFormData({
+        target_url: "",
+        name: "",
+        foreground: "#000000",
+        background: "#ffffff",
+      });
+      setPreviewUrl(null);
       setError(null);
     }
     if (newOpen) {
       setTimeout(() => {
-        const el = targetInputRef.current || document.getElementById("target_url");
+        const el =
+          targetInputRef.current || document.getElementById("target_url");
         if (el && typeof (el as HTMLInputElement).focus === "function") {
           (el as HTMLInputElement).focus();
         }
@@ -109,7 +118,10 @@ export default function CreateQrCode({ onQrCreated }: CreateQrCodeProps) {
       const active = document.activeElement;
       if (active) {
         const tag = active.tagName.toLowerCase();
-        const isEditable = tag === "input" || tag === "textarea" || (active as HTMLElement).isContentEditable;
+        const isEditable =
+          tag === "input" ||
+          tag === "textarea" ||
+          (active as HTMLElement).isContentEditable;
         if (isEditable) return;
       }
       if (e.key === "n" || e.key === "N") {
@@ -130,7 +142,9 @@ export default function CreateQrCode({ onQrCreated }: CreateQrCodeProps) {
       <DialogContent className="sm:max-w-[540px]">
         <DialogHeader>
           <DialogTitle>Crear Código QR</DialogTitle>
-          <DialogDescription>Genera un código QR y obtén el enlace de descarga (SVG/PNG).</DialogDescription>
+          <DialogDescription>
+            Genera un código QR y obtén el enlace de descarga (PNG).
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -140,7 +154,9 @@ export default function CreateQrCode({ onQrCreated }: CreateQrCodeProps) {
               id="target_url"
               ref={targetInputRef}
               value={formData.target_url}
-              onChange={(e) => setFormData((prev) => ({ ...prev, target_url: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, target_url: e.target.value }))
+              }
               placeholder="https://example.com"
               required
             />
@@ -151,7 +167,9 @@ export default function CreateQrCode({ onQrCreated }: CreateQrCodeProps) {
             <Input
               id="name"
               value={formData.name}
-              onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, name: e.target.value }))
+              }
               placeholder="Ej: QR de venta"
             />
           </div>
@@ -163,7 +181,12 @@ export default function CreateQrCode({ onQrCreated }: CreateQrCodeProps) {
                 id="foreground"
                 type="color"
                 value={formData.foreground}
-                onChange={(e) => setFormData((prev) => ({ ...prev, foreground: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    foreground: e.target.value,
+                  }))
+                }
               />
             </div>
 
@@ -173,23 +196,17 @@ export default function CreateQrCode({ onQrCreated }: CreateQrCodeProps) {
                 id="background"
                 type="color"
                 value={formData.background}
-                onChange={(e) => setFormData((prev) => ({ ...prev, background: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    background: e.target.value,
+                  }))
+                }
               />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="format">Formato</Label>
-            <Select value={formData.format} onValueChange={(v: "png" | "svg") => setFormData((prev) => ({ ...prev, format: v }))}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecciona formato" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="png">PNG</SelectItem>
-                <SelectItem value="svg">SVG</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {/* Format selector removed: backend only returns PNG now. */}
 
           {error && (
             <div className="text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md p-3">
@@ -199,19 +216,38 @@ export default function CreateQrCode({ onQrCreated }: CreateQrCodeProps) {
 
           <div className="flex items-center gap-4">
             <div className="flex-1">
-              <div className="text-sm text-muted-foreground">Previsualización</div>
+              <div className="text-sm text-muted-foreground">
+                Previsualización
+              </div>
               <div className="mt-2 p-2 bg-white dark:bg-slate-800 rounded-md flex items-center justify-center h-28">
-                {/* Quick preview: show the target url as text, actual QR preview would require rendering the generated file */}
-                <div className="text-xs break-all text-center">{formData.target_url || 'URL destino...'}</div>
+                {/* Show generated PNG preview when available, otherwise show the target url as placeholder */}
+                {previewUrl ? (
+                  <img
+                    src={previewUrl}
+                    alt="QR preview"
+                    className="max-h-24 object-contain"
+                  />
+                ) : (
+                  <div className="text-xs break-all text-center">
+                    {formData.target_url || "URL destino..."}
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={loading}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+              disabled={loading}
+            >
               Cancelar
             </Button>
-            <Button type="submit" disabled={loading}>{loading ? 'Generando...' : 'Generar QR'}</Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? "Generando..." : "Generar QR"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

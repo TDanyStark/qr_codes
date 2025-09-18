@@ -6,7 +6,6 @@ namespace App\Application\Actions\QrCode;
 
 use App\Application\Actions\Action;
 use App\Domain\QrCode\QrCode as DomainQrCode;
-use Endroid\QrCode\Writer\SvgWriter;
 use Endroid\QrCode\Writer\PngWriter;
 use Endroid\QrCode\Color\Color;
 use Endroid\QrCode\QrCode as EndroidQrCode;
@@ -14,6 +13,7 @@ use Psr\Http\Message\ResponseInterface as Response;
 
 class CreateQrCodeAction extends QrCodeAction
 {
+    // NOTE: This action now generates PNG only (SVG generation removed intentionally).
     protected function action(): Response
     {
         $data = $this->getFormData();
@@ -22,7 +22,7 @@ class CreateQrCodeAction extends QrCodeAction
         $name = $data['name'] ?? null;
         $foreground = $data['foreground'] ?? '#000000';
         $background = $data['background'] ?? '#ffffff';
-        $format = strtolower($data['format'] ?? 'png'); // png or svg
+    // Force PNG-only output. Ignore any requested format.
 
         if (empty($targetUrl)) {
             return $this->respondWithData(['error' => 'target_url is required'], 400);
@@ -49,31 +49,34 @@ class CreateQrCodeAction extends QrCodeAction
         $created = $this->qrCodeRepository->create($domainQr);
 
         // prepare folders
-        $publicDir = dirname(__DIR__, 5) . '/public';
+        // Ensure we write into the backend/public folder. Walk up from current dir to find a folder named 'backend'.
+        $dir = __DIR__;
+        $backendRoot = null;
+        while ($dir && $dir !== dirname($dir)) {
+            if (basename($dir) === 'backend') {
+                $backendRoot = $dir;
+                break;
+            }
+            $dir = dirname($dir);
+        }
+
+        if ($backendRoot === null) {
+            // fallback to previous behavior (5 levels up)
+            $publicDir = dirname(__DIR__, 5) . '/public';
+        } else {
+            $publicDir = $backendRoot . '/public';
+        }
+
         $tmpDir = $publicDir . '/tmp/qrcodes';
         if (!is_dir($tmpDir)) {
             mkdir($tmpDir, 0775, true);
         }
 
-        $svgPath = $tmpDir . '/' . $token . '.svg';
         $pngPath = $tmpDir . '/' . $token . '.png';
 
         // parse colors from hex to Color objects
         $fgColor = $this->parseHexColor($foreground);
         $bgColor = $this->parseHexColor($background);
-
-        // build SVG using QrCode + SvgWriter (Endroid QR Code v6 API)
-        $qrForSvg = new EndroidQrCode(
-            data: $targetUrl,
-            size: 300,
-            margin: 10,
-            foregroundColor: $fgColor,
-            backgroundColor: $bgColor
-        );
-
-        $svgWriter = new SvgWriter();
-        $resultSvg = $svgWriter->write($qrForSvg);
-        file_put_contents($svgPath, $resultSvg->getString());
 
         // build PNG using QrCode + PngWriter
         $qrForPng = new EndroidQrCode(
@@ -95,7 +98,6 @@ class CreateQrCodeAction extends QrCodeAction
         }
 
         $links = [
-            'svg' => $baseUrl . '/tmp/qrcodes/' . $token . '.svg',
             'png' => $baseUrl . '/tmp/qrcodes/' . $token . '.png',
         ];
 
