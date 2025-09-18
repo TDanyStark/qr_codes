@@ -23,24 +23,28 @@ class PdoUserRepository implements UserRepository
      */
     public function findAll(): array
     {
-        $stmt = $this->pdo->query('SELECT id, name, email, password, created_at FROM users ORDER BY id');
+        $stmt = $this->pdo->query('SELECT id, name, email, rol, codigo, fecha_expedicion, created_at, password FROM users ORDER BY id');
         $rows = $stmt->fetchAll();
 
         $users = [];
         foreach ($rows as $row) {
-            // Map DB fields to domain User constructor (username/firstName/lastName expectations)
-            // We'll use email as username if username field isn't present in DB schema.
-            $username = $row['email'] ?? $row['name'];
-            // Split name into first/last when possible
-            $first = $row['name'] ?? '';
-            $last = '';
-            if (strpos($first, ' ') !== false) {
-                [$firstPart, $lastPart] = explode(' ', $first, 2);
-                $first = $firstPart;
-                $last = $lastPart;
+            $id = (int)$row['id'];
+            $name = $row['name'] ?? '';
+            $email = $row['email'] ?? '';
+            $rol = $row['rol'] ?? 'user';
+            $codigo = $row['codigo'] ?? null;
+
+            $fechaExp = null;
+            if (!empty($row['fecha_expedicion'])) {
+                $fechaExp = new \DateTimeImmutable($row['fecha_expedicion']);
             }
 
-            $users[] = new User((int)$row['id'], $username, $first, $last);
+            $createdAt = null;
+            if (!empty($row['created_at'])) {
+                $createdAt = new \DateTimeImmutable($row['created_at']);
+            }
+
+            $users[] = new User($id, $name, $email, $rol, $codigo, $fechaExp, $createdAt);
         }
 
         return $users;
@@ -51,7 +55,7 @@ class PdoUserRepository implements UserRepository
      */
     public function findUserOfId(int $id): User
     {
-        $stmt = $this->pdo->prepare('SELECT id, name, email, password, created_at FROM users WHERE id = :id');
+        $stmt = $this->pdo->prepare('SELECT id, name, email, rol, codigo, fecha_expedicion, created_at, password FROM users WHERE id = :id');
         $stmt->execute(['id' => $id]);
         $row = $stmt->fetch();
 
@@ -59,16 +63,22 @@ class PdoUserRepository implements UserRepository
             throw new UserNotFoundException();
         }
 
-        $username = $row['email'] ?? $row['name'];
-        $first = $row['name'] ?? '';
-        $last = '';
-        if (strpos($first, ' ') !== false) {
-            [$firstPart, $lastPart] = explode(' ', $first, 2);
-            $first = $firstPart;
-            $last = $lastPart;
+        $name = $row['name'] ?? '';
+        $email = $row['email'] ?? '';
+        $rol = $row['rol'] ?? 'user';
+        $codigo = $row['codigo'] ?? null;
+
+        $fechaExp = null;
+        if (!empty($row['fecha_expedicion'])) {
+            $fechaExp = new \DateTimeImmutable($row['fecha_expedicion']);
         }
 
-        return new User((int)$row['id'], $username, $first, $last);
+        $createdAt = null;
+        if (!empty($row['created_at'])) {
+            $createdAt = new \DateTimeImmutable($row['created_at']);
+        }
+
+        return new User((int)$row['id'], $name, $email, $rol, $codigo, $fechaExp, $createdAt);
     }
 
     /**
@@ -76,7 +86,7 @@ class PdoUserRepository implements UserRepository
      */
     public function findByEmail(string $email): User
     {
-        $stmt = $this->pdo->prepare('SELECT id, name, email, password, created_at FROM users WHERE email = :email');
+        $stmt = $this->pdo->prepare('SELECT id, name, email, rol, codigo, fecha_expedicion, created_at, password FROM users WHERE email = :email');
         $stmt->execute(['email' => $email]);
         $row = $stmt->fetch();
 
@@ -84,16 +94,21 @@ class PdoUserRepository implements UserRepository
             throw new UserNotFoundException();
         }
 
-        $username = $row['email'] ?? $row['name'];
-        $first = $row['name'] ?? '';
-        $last = '';
-        if (strpos($first, ' ') !== false) {
-            [$firstPart, $lastPart] = explode(' ', $first, 2);
-            $first = $firstPart;
-            $last = $lastPart;
+        $name = $row['name'] ?? '';
+        $rol = $row['rol'] ?? 'user';
+        $codigo = $row['codigo'] ?? null;
+
+        $fechaExp = null;
+        if (!empty($row['fecha_expedicion'])) {
+            $fechaExp = new \DateTimeImmutable($row['fecha_expedicion']);
         }
 
-        return new User((int)$row['id'], $username, $first, $last);
+        $createdAt = null;
+        if (!empty($row['created_at'])) {
+            $createdAt = new \DateTimeImmutable($row['created_at']);
+        }
+
+        return new User((int)$row['id'], $name, $email, $rol, $codigo, $fechaExp, $createdAt);
     }
 
     /**

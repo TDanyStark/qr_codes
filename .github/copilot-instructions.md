@@ -67,7 +67,7 @@ Contiene los usuarios del sistema.
 
 Cada usuario puede tener múltiples códigos QR.
 
-La contraseña se almacena como hash (no en texto plano).
+El código se usa como autenticación por email y puede tener fecha de expedición.
 
 Campos principales:
 
@@ -77,7 +77,11 @@ name → nombre del usuario.
 
 email → correo único.
 
-password → contraseña hasheada.
+rol → rol del usuario dentro del sistema (admin o user).
+
+codigo → código de autenticación enviado al email.
+
+fecha_expedicion → fecha en que fue generado el código.
 
 created_at → fecha de creación del registro.
 
@@ -136,9 +140,12 @@ CREATE TABLE users (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,   -- se guarda un hash seguro
+    rol ENUM('admin', 'user') NOT NULL DEFAULT 'user',
+    codigo VARCHAR(255) NULL,   -- código de autenticación enviado por email
+    fecha_expedicion DATE NULL, -- fecha en que fue generado el código
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
 
 -- Tabla de códigos QR
 CREATE TABLE qrcodes (

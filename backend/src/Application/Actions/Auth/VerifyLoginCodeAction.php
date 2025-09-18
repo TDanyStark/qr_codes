@@ -51,13 +51,11 @@ class VerifyLoginCodeAction extends Action
         // clear password
         $this->userRepository->updatePassword((int)$user->getId(), null);
 
-        // generate JWT with user info
+        // generate JWT with minimal user info
         $payload = [
             'sub' => (int)$user->getId(),
             'email' => $email,
-            'username' => $user->getUsername(),
-            'firstName' => $user->getFirstName(),
-            'lastName' => $user->getLastName(),
+            'rol' => method_exists($user, 'getRol') ? $user->getRol() : 'user',
         ];
 
         $token = $this->jwtService->generate($payload);
