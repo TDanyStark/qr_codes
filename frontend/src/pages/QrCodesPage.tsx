@@ -85,7 +85,7 @@ export default function QrCodesPage() {
                             <TooltipTrigger className="block truncate max-w-[200px]">
                                 {q.name}
                             </TooltipTrigger>
-                            <TooltipContent>
+                            <TooltipContent className="font-medium">
                               {q.name}
                             </TooltipContent>
                           </Tooltip>
