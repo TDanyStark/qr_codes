@@ -9,8 +9,8 @@ export default function Layout() {
           <Sidebar />
         </div>
 
-        <div className="flex-1 p-4">
-          <main className="max-w-5xl mx-auto">
+        <div className="flex-1">
+          <main className="dark:bg-gray-900  min-h-screen">
             <Outlet />
           </main>
         </div>

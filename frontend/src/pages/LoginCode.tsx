@@ -54,7 +54,7 @@ export default function LoginCode() {
         // store token (simple localStorage for now) and clear pending
         if (token) localStorage.setItem("token", token);
         pendingEmail.clearPending();
-        navigate("/users");
+        navigate("/qr_codes");
       } else {
         setError(message || "Código inválido");
       }

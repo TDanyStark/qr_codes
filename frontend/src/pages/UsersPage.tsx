@@ -34,7 +34,7 @@ export default function UsersPage() {
   }, [isError, error])
 
   return (
-    <div className="max-w-3xl mx-auto p-6 dark:bg-gray-900 min-h-screen">
+    <div className="p-6 max-w-5xl mx-auto">
       <h1 className="text-2xl font-semibold mb-4 text-gray-100">Usuarios</h1>
 
       {isLoading && (
