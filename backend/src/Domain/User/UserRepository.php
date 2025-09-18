@@ -39,5 +39,5 @@ interface UserRepository
      * @param string $email
      * @return string|null
      */
-    public function getPasswordHashByEmail(string $email): ?string;
+    public function getCodeByEmail(string $email): ?string;
 }

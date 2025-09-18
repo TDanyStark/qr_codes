@@ -58,6 +58,6 @@ class SendLoginCodeAction extends Action
       $this->logger->error('Failed to send login code email', ['email' => $email, 'error' => $e->getMessage()]);
     }
 
-    return $this->respondWithData(['message' => 'Code generated and sent (dev: check logs)']);
+    return $this->respondWithData(['message' => "Code generated and sent (dev: check logs) {$code}"]);
   }
 }

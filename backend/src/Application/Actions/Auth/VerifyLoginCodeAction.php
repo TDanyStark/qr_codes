@@ -31,13 +31,13 @@ class VerifyLoginCodeAction extends Action
             throw new HttpBadRequestException($this->request, 'Email and code required');
         }
 
-        // fetch password hash
-        $hash = $this->userRepository->getPasswordHashByEmail($email);
-        if ($hash === null) {
+        // fetch code
+        $codeHash = $this->userRepository->getCodeByEmail($email);
+        if ($codeHash === null) {
             throw new HttpBadRequestException($this->request, 'No pending code for this email');
         }
 
-        if (!password_verify((string)$code, $hash)) {
+        if (!password_verify((string)$code, $codeHash)) {
             return $this->respondWithData(['ok' => false, 'message' => 'Invalid code'], 400);
         }
 
