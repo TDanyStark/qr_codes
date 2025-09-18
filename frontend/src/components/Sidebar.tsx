@@ -43,7 +43,7 @@ export default function Sidebar() {
       </div>
 
       {/* Desktop: left sidebar */}
-      <aside className="hidden md:block w-60 h-full p-4 border-r border-gray-700">
+      <aside className="hidden md:flex md:flex-col md:w-60 md:h-screen p-4 border-r border-gray-700">
         <div className="mb-6 text-xl font-semibold">QR Manager</div>
         <nav className="flex flex-col gap-2">
           {items.map((it) => {
@@ -60,13 +60,17 @@ export default function Sidebar() {
               </Link>
             )
           })}
+        </nav>
+
+        {/* Push logout to the bottom */}
+        <div className="mt-auto">
           <button
             onClick={handleLogout}
-            className="mt-4 text-left px-3 py-2 rounded text-gray-300 hover:bg-gray-700"
+            className="w-full text-left px-3 py-2 rounded bg-red-500 text-gray-300 hover:bg-red-600"
           >
             Logout
           </button>
-        </nav>
+        </div>
       </aside>
     </div>
   )
