@@ -1,0 +1,31 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Application\Actions\QrCode;
+
+use Psr\Http\Message\ResponseInterface as Response;
+
+class ListQrCodesAction extends QrCodeAction
+{
+    protected function action(): Response
+    {
+        $jwt = $this->request->getAttribute('jwt');
+
+        $userId = null;
+        if (is_array($jwt) && isset($jwt['sub'])) {
+            $userId = (int)$jwt['sub'];
+        } elseif (is_object($jwt) && isset($jwt->sub)) {
+            $userId = (int)$jwt->sub;
+        }
+
+        if ($userId === null) {
+            // no user id in token -> return empty
+            return $this->respondWithData([], 200);
+        }
+
+        $items = $this->qrCodeRepository->findAllForUser($userId);
+
+        return $this->respondWithData($items);
+    }
+}

@@ -35,6 +35,11 @@ return function (App $app) {
         ->add(AdminRoleMiddleware::class)
         ->add(JwtAuthMiddleware::class);
 
+        // QR Codes endpoints
+        $group->group('/qrcodes', function (Group $group) {
+            $group->get('', \App\Application\Actions\QrCode\ListQrCodesAction::class);
+        })->add(JwtAuthMiddleware::class);
+
         // Token verify endpoint - returns 200 if token is valid (middleware will reject otherwise)
         $group->get('/token/verify', function (Request $request, Response $response) {
             $response->getBody()->write(json_encode(['ok' => true]));
