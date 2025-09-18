@@ -10,6 +10,14 @@ export default function LoginCode() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (!token) return
+    axios.get('/api/token/verify', { headers: { Authorization: `Bearer ${token}` } })
+      .then(() => navigate('/qr_codes'))
+      .catch(() => {})
+  }, [navigate])
+
+  useEffect(() => {
     // If there's no pending email, redirect back to start
     const email = pendingEmail.getPendingEmail();
     if (!email) navigate("/");

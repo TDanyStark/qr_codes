@@ -4,6 +4,7 @@ import LoginEmail from './pages/LoginEmail'
 import LoginCode from './pages/LoginCode'
 import QrCodesPage from './pages/QrCodesPage'
 import Layout from './components/Layout'
+import RequireAuth from './components/RequireAuth'
 
 export default function AppRoutes() {
   return (
@@ -14,8 +15,22 @@ export default function AppRoutes() {
 
       {/* App routes - these render inside the Layout (which includes the Sidebar) */}
       <Route element={<Layout />}>
-        <Route path="/qr_codes" element={<QrCodesPage />} />
-        <Route path="/users" element={<UsersPage />} />
+        <Route
+          path="/qr_codes"
+          element={
+            <RequireAuth>
+              <QrCodesPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/users"
+          element={
+            <RequireAuth>
+              <UsersPage />
+            </RequireAuth>
+          }
+        />
       </Route>
     </Routes>
   )

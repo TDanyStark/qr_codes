@@ -1,13 +1,23 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import pendingEmail from "../lib/pendingEmail";
 
 export default function LoginEmail() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (!token) return
+    axios.get('/api/token/verify', { headers: { Authorization: `Bearer ${token}` } })
+      .then(() => navigate('/qr_codes'))
+      .catch(() => {})
+  }, [navigate])
+
+  
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
