@@ -9,7 +9,8 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { ChartPie, SquarePen } from "lucide-react"
+import { ChartPie, SquarePen, ExternalLink } from "lucide-react"
+import { toast, Toaster } from "sonner"
 
 type Qr = {
   id: number
@@ -25,7 +26,10 @@ export default function QrCodesPage() {
   const [items, setItems] = useState<Qr[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
+  // Using sonner to show small toasts. Install with:
+  // npm install sonner
+  // or
+  // pnpm add sonner
   useEffect(() => {
     const token = localStorage.getItem("token")
     fetch("/api/qrcodes", {
@@ -46,7 +50,8 @@ export default function QrCodesPage() {
 
   return (
     <div className="container_section_main">
-      <h1 className="text-2xl font-semibold mb-4">QR Codes</h1>
+      <Toaster position="top-right" richColors />
+      <h1 className="text-4xl font-semibold mb-4">QR Codes</h1>
 
       <div className="bg-card text-card-foreground rounded shadow p-4">
         {loading ? (
@@ -69,11 +74,49 @@ export default function QrCodesPage() {
                 {items.map((q) => (
                   <TableRow key={q.id}>
                     <TableCell className="max-w-xs truncate">{q.name ?? "-"}</TableCell>
-                    <TableCell className="font-mono text-sm">{q.token}</TableCell>
-                    <TableCell className="truncate max-w-md">
-                      <a href={q.target_url} className="hover:underline" target="_blank" rel="noreferrer">
-                        {q.target_url}
-                      </a>
+                    <TableCell className="font-mono text-sm max-w-[200px]">
+                      <button
+                        title="Copiar token"
+                        onClick={async () => {
+                          try {
+                            await navigator.clipboard.writeText(q.token)
+                            toast.success('Token copiado')
+                          } catch {
+                            toast.error('No se pudo copiar')
+                          }
+                        }}
+                        className="block text-left truncate w-full cursor-pointer"
+                      >
+                        {q.token}
+                      </button>
+                    </TableCell>
+                    <TableCell className="max-w-[200px]">
+                      <div className="flex items-center gap-2">
+                        <button
+                          title="Copiar URL"
+                          onClick={async () => {
+                            try {
+                              await navigator.clipboard.writeText(q.target_url)
+                              toast.success('URL copiada')
+                            } catch {
+                              toast.error('No se pudo copiar')
+                            }
+                          }}
+                          className="flex-1 text-left truncate min-w-0 cursor-pointer hover:underline"
+                        >
+                          {q.target_url}
+                        </button>
+                        <a
+                          href={q.target_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          aria-label="Visitar URL"
+                          className="inline-flex items-center p-1 rounded hover:bg-muted"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
+                      </div>
                     </TableCell>
                     <TableCell>
                       <Badge variant="secondary">
