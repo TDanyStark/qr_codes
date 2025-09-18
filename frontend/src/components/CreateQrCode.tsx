@@ -31,6 +31,8 @@ export default function CreateQrCode({ onQrCreated }: CreateQrCodeProps) {
     background: "#ffffff",
   });
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [pngUrl, setPngUrl] = useState<string | null>(null);
+  const [svgUrl, setSvgUrl] = useState<string | null>(null);
   const [redirectLink, setRedirectLink] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [created, setCreated] = useState(false);
@@ -69,20 +71,27 @@ export default function CreateQrCode({ onQrCreated }: CreateQrCodeProps) {
         },
       });
 
-      // If success, show preview image returned by backend and keep dialog open
-      // Support both res.data.links.png and res.data.data.links.png shapes
+      // If success, show preview URLs returned by backend and keep dialog open
+      // Support both res.data.links.{png,svg,redirect} and res.data.data.links.* shapes
       console.debug("CreateQrCode response", res?.data);
-      const pngUrl =
-        res?.data?.links?.png ?? res?.data?.data?.links?.png ?? null;
-      if (pngUrl) {
-        setPreviewUrl(pngUrl);
+      const maybeLinks = res?.data?.links ?? res?.data?.data?.links ?? null;
+      const returnedPng = maybeLinks?.png ?? null;
+      const returnedSvg = maybeLinks?.svg ?? null;
+      const returnedRedirect = maybeLinks?.redirect ?? null;
+
+      // Prefer PNG for inline raster preview, but keep both urls in state
+      if (returnedPng) {
+        setPngUrl(returnedPng);
+        setPreviewUrl(returnedPng);
       }
-      // capture redirect link if backend returns it
-      const redirect =
-        res?.data?.links?.redirect ?? res?.data?.data?.links?.redirect ?? null;
-      if (redirect) setRedirectLink(redirect);
+      if (returnedSvg) {
+        setSvgUrl(returnedSvg);
+        // If no png was returned, use svg as preview
+        if (!returnedPng) setPreviewUrl(returnedSvg);
+      }
+      if (returnedRedirect) setRedirectLink(returnedRedirect);
       // mark as created so we don't allow another create until user clicks "Crear Otro"
-      setCreated(true);
+  setCreated(true);
       // notify parent that a QR was created
       onQrCreated?.();
     } catch (err: unknown) {
@@ -113,6 +122,8 @@ export default function CreateQrCode({ onQrCreated }: CreateQrCodeProps) {
         background: "#ffffff",
       });
       setPreviewUrl(null);
+      setPngUrl(null);
+      setSvgUrl(null);
       setRedirectLink(null);
       setCopied(false);
       setCreated(false);
@@ -281,20 +292,34 @@ export default function CreateQrCode({ onQrCreated }: CreateQrCodeProps) {
                   <div className="text-sm text-muted-foreground px-3 py-1.5">
                     Previsualización
                   </div>
-                  {previewUrl && (
-                    <a
-                      href={previewUrl}
-                      download={previewUrl.split("/").pop()}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium bg-[var(--brand-pink)] text-[var(--brand-pink-foreground)] shadow-sm hover:shadow-md transition-colors"
-                    >
-                      <Download />
-                    </a>
+                  {(pngUrl || svgUrl) && (
+                    <div className="flex gap-2">
+                      {pngUrl && (
+                        <a
+                          href={pngUrl}
+                          download={pngUrl.split("/").pop()}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium bg-[var(--brand-pink)] text-[var(--brand-pink-foreground)] shadow-sm hover:shadow-md transition-colors"
+                        >
+                          <Download /> PNG
+                        </a>
+                      )}
+                      {svgUrl && (
+                        <a
+                          href={svgUrl}
+                          download={svgUrl.split("/").pop()}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium bg-[var(--brand-pink)] text-[var(--brand-pink-foreground)] shadow-sm hover:shadow-md transition-colors"
+                        >
+                          <Download /> SVG
+                        </a>
+                      )}
+                    </div>
                   )}
                 </div>
                 <div className="mt-2 p-2 aspect-square w-full h-full bg-white dark:bg-slate-800 rounded-md flex items-center justify-center">
-                  {/* Show generated PNG preview when available, otherwise show the target url as placeholder */}
                   {previewUrl && (
                     <img
                       src={previewUrl}
@@ -334,6 +359,8 @@ export default function CreateQrCode({ onQrCreated }: CreateQrCodeProps) {
                   background: "#ffffff",
                 });
                 setPreviewUrl(null);
+                setPngUrl(null);
+                setSvgUrl(null);
                 setRedirectLink(null);
                 setCopied(false);
                 setCreated(false);

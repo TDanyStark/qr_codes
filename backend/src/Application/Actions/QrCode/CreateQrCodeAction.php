@@ -7,6 +7,7 @@ namespace App\Application\Actions\QrCode;
 use App\Application\Actions\Action;
 use App\Domain\QrCode\QrCode as DomainQrCode;
 use Endroid\QrCode\Writer\PngWriter;
+use Endroid\QrCode\Writer\SvgWriter;
 use Endroid\QrCode\Color\Color;
 use Endroid\QrCode\QrCode as EndroidQrCode;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -72,7 +73,8 @@ class CreateQrCodeAction extends QrCodeAction
             mkdir($tmpDir, 0775, true);
         }
 
-        $pngPath = $tmpDir . '/' . $token . '.png';
+    $pngPath = $tmpDir . '/' . $token . '.png';
+    $svgPath = $tmpDir . '/' . $token . '.svg';
 
         // parse colors from hex to Color objects
         $fgColor = $this->parseHexColor($foreground);
@@ -96,9 +98,25 @@ class CreateQrCodeAction extends QrCodeAction
         $resultPng = $pngWriter->write($qrForPng);
         file_put_contents($pngPath, $resultPng->getString());
 
+        // Also build and save SVG
+        $svgWriter = new SvgWriter();
+        // For SVG we can set larger size or rely on vector scaling; reuse colors
+        $qrForSvg = new EndroidQrCode(
+            data: $qrData,
+            size: 1000,
+            margin: 10,
+            foregroundColor: $fgColor,
+            backgroundColor: $bgColor
+        );
+
+        $resultSvg = $svgWriter->write($qrForSvg);
+        // Svg writer provides string output as well
+        file_put_contents($svgPath, $resultSvg->getString());
+
         // Return the PNG path and the redirect URL the QR points to (frontend may use this link)
         $links = [
             'png' => '/tmp/qrcodes/' . $token . '.png',
+            'svg' => '/tmp/qrcodes/' . $token . '.svg',
             'redirect' => $qrData,
         ];
 
