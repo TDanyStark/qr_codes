@@ -131,3 +131,6 @@
   @apply p-6 max-w-5xl mx-auto
 }
 
+button{
+  cursor: pointer;
+}

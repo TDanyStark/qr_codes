@@ -79,9 +79,14 @@ class CreateQrCodeAction extends QrCodeAction
         $bgColor = $this->parseHexColor($background);
 
         // build PNG using QrCode + PngWriter
+        // Build the redirect URL using environment variable (URL_BASE or APP_URL)
+        $baseUrl = getenv('URL_BASE') ? getenv('URL_BASE') : '';
+        $baseUrl = rtrim($baseUrl, '/') ;
+        $qrData = ($baseUrl !== '' ? $baseUrl : '') . '/r/' . $token;
+
         $qrForPng = new EndroidQrCode(
-            data: $targetUrl,
-            size: 300,
+            data: $qrData,
+            size: 1000,
             margin: 10,
             foregroundColor: $fgColor,
             backgroundColor: $bgColor
@@ -91,9 +96,10 @@ class CreateQrCodeAction extends QrCodeAction
         $resultPng = $pngWriter->write($qrForPng);
         file_put_contents($pngPath, $resultPng->getString());
 
-        // Return only the relative path (frontend will use this '/tmp/...' path)
+        // Return the PNG path and the redirect URL the QR points to (frontend may use this link)
         $links = [
             'png' => '/tmp/qrcodes/' . $token . '.png',
+            'redirect' => $qrData,
         ];
 
         return $this->respondWithData([
