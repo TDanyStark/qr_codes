@@ -17,6 +17,7 @@ import colorForId from "@/lib/colorForId";
 import { Button } from "@/components/ui/button";
 import { ChartPie, SquarePen, ExternalLink } from "lucide-react";
 import { toast, Toaster } from "sonner";
+import CreateQrCode from "@/components/CreateQrCode";
 
 type Qr = {
   id: number;
@@ -36,28 +37,36 @@ export default function QrCodesPage() {
   // npm install sonner
   // or
   // pnpm add sonner
+  const loadItems = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("/api/qrcodes", {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      const d = data?.data ?? data;
+      setItems(d);
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    fetch("/api/qrcodes", {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    })
-      .then(async (res) => {
-        if (!res.ok) throw new Error(await res.text());
-        return res.json();
-      })
-      .then((data) => {
-        // action payload shape: { statusCode, data }
-        const d = data?.data ?? data;
-        setItems(d);
-      })
-      .catch((err) => setError(String(err)))
-      .finally(() => setLoading(false));
+    loadItems();
   }, []);
 
   return (
     <div className="container_section_main">
       <Toaster position="top-right" richColors />
-      <h1 className="text-4xl font-semibold mb-4">QR Codes</h1>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-4xl font-semibold">QR Codes</h1>
+        <CreateQrCode onQrCreated={loadItems} />
+      </div>
 
       <div className="bg-card text-card-foreground rounded shadow p-4">
         {loading ? (
