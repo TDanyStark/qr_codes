@@ -91,14 +91,9 @@ class CreateQrCodeAction extends QrCodeAction
         $resultPng = $pngWriter->write($qrForPng);
         file_put_contents($pngPath, $resultPng->getString());
 
-        $baseUrl = $this->request->getUri()->getScheme() . '://' . $this->request->getUri()->getHost();
-        $port = $this->request->getUri()->getPort();
-        if ($port) {
-            $baseUrl .= ':' . $port;
-        }
-
+        // Return only the relative path (frontend will use this '/tmp/...' path)
         $links = [
-            'png' => $baseUrl . '/tmp/qrcodes/' . $token . '.png',
+            'png' => '/tmp/qrcodes/' . $token . '.png',
         ];
 
         return $this->respondWithData([
