@@ -53,6 +53,34 @@ class PdoQrCodeRepository implements QrCodeRepository
     /**
      * {@inheritdoc}
      */
+    public function findAll(): array
+    {
+        $stmt = $this->pdo->query('SELECT id, token, owner_user_id, target_url, name, created_at FROM qrcodes ORDER BY id');
+        $rows = $stmt->fetchAll();
+
+        $items = [];
+        foreach ($rows as $row) {
+            $createdAt = null;
+            if (!empty($row['created_at'])) {
+                $createdAt = new \DateTimeImmutable($row['created_at']);
+            }
+
+            $items[] = new QrCode(
+                (int)$row['id'],
+                $row['token'] ?? '',
+                (int)$row['owner_user_id'],
+                $row['target_url'] ?? '',
+                $row['name'] ?? null,
+                $createdAt
+            );
+        }
+
+        return $items;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function findOfId(int $id): QrCode
     {
         $stmt = $this->pdo->prepare('SELECT id, token, owner_user_id, target_url, name, created_at FROM qrcodes WHERE id = :id');

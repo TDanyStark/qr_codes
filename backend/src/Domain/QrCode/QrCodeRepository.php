@@ -12,6 +12,12 @@ interface QrCodeRepository
     public function findAllForUser(int $ownerUserId): array;
 
     /**
+     * Return all QR codes in the system (for admin use)
+     * @return QrCode[]
+     */
+    public function findAll(): array;
+
+    /**
      * @param int $id
      * @return QrCode
      */

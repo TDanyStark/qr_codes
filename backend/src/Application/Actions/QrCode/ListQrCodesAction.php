@@ -24,7 +24,19 @@ class ListQrCodesAction extends QrCodeAction
             return $this->respondWithData([], 200);
         }
 
-        $items = $this->qrCodeRepository->findAllForUser($userId);
+        // check role: admin can see all
+        $isAdmin = false;
+        if (is_array($jwt) && isset($jwt['rol']) && $jwt['rol'] === 'admin') {
+            $isAdmin = true;
+        } elseif (is_object($jwt) && isset($jwt->rol) && $jwt->rol === 'admin') {
+            $isAdmin = true;
+        }
+
+        if ($isAdmin) {
+            $items = $this->qrCodeRepository->findAll();
+        } else {
+            $items = $this->qrCodeRepository->findAllForUser($userId);
+        }
 
         return $this->respondWithData($items);
     }
