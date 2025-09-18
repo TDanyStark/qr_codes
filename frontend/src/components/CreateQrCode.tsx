@@ -219,13 +219,13 @@ export default function CreateQrCode({ onQrCreated }: CreateQrCodeProps) {
               <div className="text-sm text-muted-foreground">
                 Previsualización
               </div>
-              <div className="mt-2 p-2 bg-white dark:bg-slate-800 rounded-md flex items-center justify-center h-28">
+              <div className="mt-2 p-2 aspect-square w-full h-full bg-white dark:bg-slate-800 rounded-md flex items-center justify-center">
                 {/* Show generated PNG preview when available, otherwise show the target url as placeholder */}
                 {previewUrl ? (
                   <img
                     src={previewUrl}
                     alt="QR preview"
-                    className="max-h-24 object-contain"
+                    className="w-full h-auto object-contain aspect-square"
                   />
                 ) : (
                   <div className="text-xs break-all text-center">
