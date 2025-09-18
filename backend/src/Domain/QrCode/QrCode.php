@@ -18,6 +18,10 @@ class QrCode implements JsonSerializable
 
     private ?string $name;
 
+    private ?string $ownerName;
+
+    private ?string $ownerEmail;
+
     private ?\DateTimeImmutable $createdAt;
 
     public function __construct(
@@ -26,7 +30,9 @@ class QrCode implements JsonSerializable
         int $ownerUserId,
         string $targetUrl,
         ?string $name = null,
-        ?\DateTimeImmutable $createdAt = null
+        ?\DateTimeImmutable $createdAt = null,
+        ?string $ownerName = null,
+        ?string $ownerEmail = null
     ) {
         $this->id = $id;
         $this->token = $token;
@@ -34,6 +40,8 @@ class QrCode implements JsonSerializable
         $this->targetUrl = $targetUrl;
         $this->name = $name;
         $this->createdAt = $createdAt ?? new \DateTimeImmutable();
+        $this->ownerName = $ownerName;
+        $this->ownerEmail = $ownerEmail;
     }
 
     public function getId(): ?int
@@ -66,6 +74,16 @@ class QrCode implements JsonSerializable
         return $this->createdAt;
     }
 
+    public function getOwnerName(): ?string
+    {
+        return $this->ownerName;
+    }
+
+    public function getOwnerEmail(): ?string
+    {
+        return $this->ownerEmail;
+    }
+
     public function toArray(): array
     {
         return [
@@ -75,6 +93,8 @@ class QrCode implements JsonSerializable
             'target_url' => $this->targetUrl,
             'name' => $this->name,
             'created_at' => $this->createdAt?->format('Y-m-d H:i:s'),
+            'owner_name' => $this->ownerName,
+            'owner_email' => $this->ownerEmail,
         ];
     }
 

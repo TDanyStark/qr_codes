@@ -26,7 +26,7 @@ class PdoQrCodeRepository implements QrCodeRepository
      */
     public function findAllForUser(int $ownerUserId): array
     {
-        $stmt = $this->pdo->prepare('SELECT id, token, owner_user_id, target_url, name, created_at FROM qrcodes WHERE owner_user_id = :owner ORDER BY id');
+    $stmt = $this->pdo->prepare('SELECT q.id, q.token, q.owner_user_id, q.target_url, q.name, q.created_at, u.name AS owner_name, u.email AS owner_email FROM qrcodes q LEFT JOIN users u ON q.owner_user_id = u.id WHERE owner_user_id = :owner ORDER BY q.id');
         $stmt->execute(['owner' => $ownerUserId]);
         $rows = $stmt->fetchAll();
 
@@ -43,7 +43,9 @@ class PdoQrCodeRepository implements QrCodeRepository
                 (int)$row['owner_user_id'],
                 $row['target_url'] ?? '',
                 $row['name'] ?? null,
-                $createdAt
+                $createdAt,
+                $row['owner_name'] ?? null,
+                $row['owner_email'] ?? null
             );
         }
 
@@ -55,7 +57,7 @@ class PdoQrCodeRepository implements QrCodeRepository
      */
     public function findAll(): array
     {
-        $stmt = $this->pdo->query('SELECT id, token, owner_user_id, target_url, name, created_at FROM qrcodes ORDER BY id');
+    $stmt = $this->pdo->query('SELECT q.id, q.token, q.owner_user_id, q.target_url, q.name, q.created_at, u.name AS owner_name, u.email AS owner_email FROM qrcodes q LEFT JOIN users u ON q.owner_user_id = u.id ORDER BY q.id');
         $rows = $stmt->fetchAll();
 
         $items = [];
@@ -71,7 +73,9 @@ class PdoQrCodeRepository implements QrCodeRepository
                 (int)$row['owner_user_id'],
                 $row['target_url'] ?? '',
                 $row['name'] ?? null,
-                $createdAt
+                $createdAt,
+                $row['owner_name'] ?? null,
+                $row['owner_email'] ?? null
             );
         }
 
@@ -83,7 +87,7 @@ class PdoQrCodeRepository implements QrCodeRepository
      */
     public function findOfId(int $id): QrCode
     {
-        $stmt = $this->pdo->prepare('SELECT id, token, owner_user_id, target_url, name, created_at FROM qrcodes WHERE id = :id');
+    $stmt = $this->pdo->prepare('SELECT q.id, q.token, q.owner_user_id, q.target_url, q.name, q.created_at, u.name AS owner_name, u.email AS owner_email FROM qrcodes q LEFT JOIN users u ON q.owner_user_id = u.id WHERE q.id = :id');
         $stmt->execute(['id' => $id]);
         $row = $stmt->fetch();
 
@@ -102,7 +106,9 @@ class PdoQrCodeRepository implements QrCodeRepository
             (int)$row['owner_user_id'],
             $row['target_url'] ?? '',
             $row['name'] ?? null,
-            $createdAt
+            $createdAt,
+            $row['owner_name'] ?? null,
+            $row['owner_email'] ?? null
         );
     }
 
@@ -111,7 +117,7 @@ class PdoQrCodeRepository implements QrCodeRepository
      */
     public function findByToken(string $token): QrCode
     {
-        $stmt = $this->pdo->prepare('SELECT id, token, owner_user_id, target_url, name, created_at FROM qrcodes WHERE token = :token');
+    $stmt = $this->pdo->prepare('SELECT q.id, q.token, q.owner_user_id, q.target_url, q.name, q.created_at, u.name AS owner_name, u.email AS owner_email FROM qrcodes q LEFT JOIN users u ON q.owner_user_id = u.id WHERE q.token = :token');
         $stmt->execute(['token' => $token]);
         $row = $stmt->fetch();
 
@@ -130,7 +136,9 @@ class PdoQrCodeRepository implements QrCodeRepository
             (int)$row['owner_user_id'],
             $row['target_url'] ?? '',
             $row['name'] ?? null,
-            $createdAt
+            $createdAt,
+            $row['owner_name'] ?? null,
+            $row['owner_email'] ?? null
         );
     }
 
@@ -149,13 +157,26 @@ class PdoQrCodeRepository implements QrCodeRepository
 
         $id = (int)$this->pdo->lastInsertId();
 
+        // try to fetch owner info for the created record
+        $ownerName = null;
+        $ownerEmail = null;
+        $stmt2 = $this->pdo->prepare('SELECT name, email FROM users WHERE id = :id');
+        $stmt2->execute(['id' => $qrCode->getOwnerUserId()]);
+        $userRow = $stmt2->fetch();
+        if ($userRow) {
+            $ownerName = $userRow['name'] ?? null;
+            $ownerEmail = $userRow['email'] ?? null;
+        }
+
         return new QrCode(
             $id,
             $qrCode->getToken(),
             $qrCode->getOwnerUserId(),
             $qrCode->getTargetUrl(),
             $qrCode->getName(),
-            new \DateTimeImmutable()
+            new \DateTimeImmutable(),
+            $ownerName,
+            $ownerEmail
         );
     }
 }
