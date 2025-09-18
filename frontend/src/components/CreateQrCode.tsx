@@ -216,8 +216,21 @@ export default function CreateQrCode({ onQrCreated }: CreateQrCodeProps) {
 
           <div className="flex items-center gap-4">
             <div className="flex-1">
-              <div className="text-sm text-muted-foreground">
-                Previsualización
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-muted-foreground px-3 py-1.5">
+                  Previsualización
+                </div>
+                {previewUrl && (
+                  <a
+                    href={previewUrl}
+                    download={previewUrl.split("/").pop()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium bg-[var(--brand-pink)] text-[var(--brand-pink-foreground)] shadow-sm hover:shadow-md transition-colors"
+                  >
+                    Descargar
+                  </a>
+                )}
               </div>
               <div className="mt-2 p-2 aspect-square w-full h-full bg-white dark:bg-slate-800 rounded-md flex items-center justify-center">
                 {/* Show generated PNG preview when available, otherwise show the target url as placeholder */}
@@ -245,6 +258,7 @@ export default function CreateQrCode({ onQrCreated }: CreateQrCodeProps) {
             >
               Cancelar
             </Button>
+
             <Button type="submit" disabled={loading}>
               {loading ? "Generando..." : "Generar QR"}
             </Button>
