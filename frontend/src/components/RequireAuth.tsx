@@ -20,7 +20,7 @@ export default function RequireAuth({ children }: { children?: React.ReactNode }
       } catch (err) {
         console.debug('token verify failed', err)
         localStorage.removeItem('token')
-        navigate('/login')
+        navigate('/')
       }
     }
 
