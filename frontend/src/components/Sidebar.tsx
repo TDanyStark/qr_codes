@@ -1,11 +1,9 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { jwtDecode } from 'jwt-decode'
 
 type Item = { to: string; label: string }
 
-const items: Item[] = [
-  { to: '/qr_codes', label: 'QR-Codes' },
-  { to: '/users', label: 'Users' },
-]
+const baseItems: Item[] = [{ to: '/qr_codes', label: 'QR-Codes' }]
 
 export default function Sidebar() {
   const loc = useLocation()
@@ -14,6 +12,25 @@ export default function Sidebar() {
   function handleLogout() {
     localStorage.removeItem('token')
     navigate('/')
+  }
+
+  // determine role from token to conditionally show admin items
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+  const payload = (() => {
+    if (!token) return null
+    try {
+      return jwtDecode(token)
+    } catch {
+      return null
+    }
+  })()
+
+  const obj = payload && typeof payload === 'object' ? (payload as unknown as Record<string, unknown>) : null
+  const rol = obj && 'rol' in obj ? obj['rol'] : null
+
+  const items: Item[] = [...baseItems]
+  if (rol === 'admin') {
+    items.push({ to: '/users', label: 'Users' })
   }
 
   return (

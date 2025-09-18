@@ -5,6 +5,7 @@ import LoginCode from './pages/LoginCode'
 import QrCodesPage from './pages/QrCodesPage'
 import Layout from './components/Layout'
 import RequireAuth from './components/RequireAuth'
+import RequireAdmin from './components/RequireAdmin'
 
 export default function AppRoutes() {
   return (
@@ -27,7 +28,9 @@ export default function AppRoutes() {
           path="/users"
           element={
             <RequireAuth>
-              <UsersPage />
+              <RequireAdmin>
+                <UsersPage />
+              </RequireAdmin>
             </RequireAuth>
           }
         />
