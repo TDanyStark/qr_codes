@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import pendingEmail from "../lib/pendingEmail";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 export default function LoginEmail() {
   const navigate = useNavigate();
@@ -45,35 +47,45 @@ export default function LoginEmail() {
   }
 
   return (
-    <div className="min-h-[60vh] flex items-center justify-center">
+    <div className="min-h-[60vh] flex items-center justify-center px-4 bg-background">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-md bg-gray-800 rounded-lg p-6 shadow"
+        className="w-full max-w-md space-y-6 bg-card rounded-lg p-6 shadow-xl border border-border"
       >
-        <h1 className="text-2xl font-semibold mb-4">Iniciar sesión</h1>
-        <p className="text-sm text-gray-300 mb-4">
-          Introduce tu email. Recibirás un código para completar el acceso.
-        </p>
+        <div className="space-y-2 text-center">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Iniciar sesión</h1>
+          <p className="text-sm text-muted-foreground">
+            Introduce tu email. Recibirás un código para completar el acceso.
+          </p>
+        </div>
 
-        <label className="block mb-2 text-sm">Email</label>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-3 rounded bg-gray-900 border border-gray-700 focus:outline-none"
-          placeholder="tu@correo.com"
-          required
-        />
+        <div className="space-y-2">
+          <label htmlFor="email" className="text-sm font-medium text-foreground">
+            Email
+          </label>
+          <Input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="tu@correo.com"
+            required
+          />
+        </div>
 
-        {error && <div className="text-red-400 mt-3">{error}</div>}
+        {error && (
+          <div className="text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md p-3">
+            {error}
+          </div>
+        )}
 
-        <button
+        <Button
           type="submit"
-          className="mt-4 w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded disabled:opacity-60"
+          className="w-full"
           disabled={loading}
         >
           {loading ? "Enviando..." : "Enviar código"}
-        </button>
+        </Button>
       </form>
     </div>
   );

@@ -178,3 +178,5 @@ Todo lo que sea frontend hazlo con react, siguiendo buenas practicas como compon
 ## importante
 - cada vista la haras en modo dark mode
 - todas las vistas deben ser responsive
+- usa Shadcn siempre si hay un componente que no tengo lo instalas con npx shadcn@latest add xxxx
+- usa los colores de variables de styles/global.css 
