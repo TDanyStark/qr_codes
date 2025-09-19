@@ -6,6 +6,8 @@ use App\Domain\User\UserRepository;
 use App\Infrastructure\Persistence\User\PdoUserRepository;
 use App\Domain\QrCode\QrCodeRepository;
 use App\Infrastructure\Persistence\QrCode\PdoQrCodeRepository;
+use App\Domain\Scan\ScanRepository;
+use App\Infrastructure\Persistence\Scan\PdoScanRepository;
 use DI\ContainerBuilder;
 
 return function (ContainerBuilder $containerBuilder) {
@@ -13,5 +15,6 @@ return function (ContainerBuilder $containerBuilder) {
     $containerBuilder->addDefinitions([
         UserRepository::class => \DI\autowire(PdoUserRepository::class),
         QrCodeRepository::class => \DI\autowire(PdoQrCodeRepository::class),
+        ScanRepository::class => \DI\autowire(PdoScanRepository::class),
     ]);
 };

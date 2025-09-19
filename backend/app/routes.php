@@ -16,6 +16,7 @@ use \App\Application\Middleware\JwtAuthMiddleware;
 use \App\Application\Middleware\AdminRoleMiddleware;
 use \App\Application\Actions\QrCode\ListQrCodesAction;
 use \App\Application\Actions\QrCode\CreateQrCodeAction;
+use \App\Application\Actions\QrCode\RedirectQrCodeAction;
 
 return function (App $app) {
     $app->options('/{routes:.*}', function (Request $request, Response $response) {
@@ -50,14 +51,6 @@ return function (App $app) {
         })->add(JwtAuthMiddleware::class);
     });
 
-    $app->get('/r/{code}', function (Request $request, Response $response, array $args) {
-        $code = $args['code'];
-        // Aquí puedes implementar la lógica para buscar la URL asociada al código en tu base de datos
-        // Por simplicidad, vamos a redirigir a una URL fija
-        $url = 'https://www.google.com'; // Reemplaza esto con la URL real asociada al código
-
-        return $response
-            ->withHeader('Location', $url)
-            ->withStatus(302);
-    });
+    // Public redirect endpoint for QR token scans
+    $app->get('/r/{code}', RedirectQrCodeAction::class);
 };
