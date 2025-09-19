@@ -3,6 +3,7 @@ import UsersPage from './pages/UsersPage'
 import LoginEmail from './pages/LoginEmail'
 import LoginCode from './pages/LoginCode'
 import QrCodesPage from './pages/QrCodesPage'
+import QrCodeStatsPage from './pages/QrCodeStatsPage'
 import Layout from './components/Layout'
 import RequireAuth from './components/RequireAuth'
 import RequireAdmin from './components/RequireAdmin'
@@ -21,6 +22,14 @@ export default function AppRoutes() {
           element={
             <RequireAuth>
               <QrCodesPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/qr_codes/:id/stats"
+          element={
+            <RequireAuth>
+              <QrCodeStatsPage />
             </RequireAuth>
           }
         />

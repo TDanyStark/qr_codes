@@ -5,6 +5,7 @@ import { Toaster } from "sonner";
 import CreateQrCode from "@/components/CreateQrCode";
 import QrCodeList from "@/components/qr/QrCodeList";
 import useQRCodes from "@/components/qr/useQRCodes";
+import { useNavigate } from "react-router-dom";
 
 export default function QrCodesPage() {
   const {
@@ -22,6 +23,8 @@ export default function QrCodesPage() {
     updatePerPage,
     updateQuery,
   } = useQRCodes({ perPage: 10 });
+
+  const navigate = useNavigate();
 
   const debounced = useDebouncedCallback((val: string) => {
     updateQuery(val);
@@ -76,7 +79,9 @@ export default function QrCodesPage() {
           urlBaseToken={urlBaseToken}
           onPageChange={(p: number) => setPage(p)}
           onEdit={(id) => console.log("edit", id)}
-          onStats={(id) => console.log("stats", id)}
+          onStats={(id) => {
+            navigate(`/qr_codes/${id}/stats`);
+          }}
         />
       </div>
     </div>
