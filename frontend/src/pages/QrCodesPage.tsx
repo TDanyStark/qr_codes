@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import Pagination from "@/components/ui/pagination";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { useDebouncedCallback } from "use-debounce";
 import {
   Table,
@@ -38,7 +39,7 @@ export default function QrCodesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState<number>(1);
-  const [perPage, setPerPage] = useState<number>(20);
+  const [perPage, setPerPage] = useState<number>(10);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [query, setQuery] = useState<string>("");
   // Using sonner to show small toasts. Install with:
@@ -122,6 +123,7 @@ export default function QrCodesPage() {
     params.set("page", String(p));
     if (q) params.set("query", q);
     else params.delete("query");
+    params.set("per_page", String(perPage));
     const newUrl = `${window.location.pathname}?${params.toString()}`;
     window.history.replaceState({}, "", newUrl);
   };
@@ -149,7 +151,7 @@ export default function QrCodesPage() {
       </div>
 
       <div className="bg-card text-card-foreground rounded shadow p-4">
-        <div className="mb-4 flex items-center gap-2">
+        <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center gap-2">
           <Input
             placeholder="Buscar..."
             value={query}
@@ -160,6 +162,25 @@ export default function QrCodesPage() {
             }}
             className="max-w-md"
           />
+          <div className="ml-auto flex items-center gap-2 w-full sm:w-auto">
+            <label className="text-sm text-muted-foreground">Mostrar</label>
+            <Select value={String(perPage)} onValueChange={(v) => {
+              const n = parseInt(v, 10) || 20;
+              setPerPage(n);
+              setPage(1);
+              pushUrl(1, query);
+              loadItems({ page: 1, perPage: n, query });
+            }}>
+              <SelectTrigger size="sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {[10,20,30,40,50,100].map((n) => (
+                  <SelectItem key={n} value={String(n)}>{n}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         {loading ? (
           <p>Cargando...</p>

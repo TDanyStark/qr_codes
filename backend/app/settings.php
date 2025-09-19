@@ -27,7 +27,7 @@ return function (ContainerBuilder $containerBuilder) {
                 ],
                 // pagination defaults (can be overridden by environment-specific settings)
                 'pagination' => [
-                    'per_page' => 20,
+                    'per_page' => 10,
                 ],
             ]);
         }
