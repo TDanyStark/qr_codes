@@ -103,10 +103,9 @@ export default function QrCodeRow({ q, urlBaseToken, onEdit, onStats }: Props) {
             <ChartPie />
           </Button>
           <Button
-            variant="ghost"
             size="sm"
             onClick={() => onEdit?.(q.id)}
-            className="bg-brand-pink text-brand-pink-foreground hover:opacity-90"
+            className="bg-brand-pink text-brand-pink-foreground hover:bg-brand-pink"
           >
             <SquarePen />
           </Button>
