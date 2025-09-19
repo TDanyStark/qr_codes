@@ -21,6 +21,8 @@ use App\Application\Services\QrCode\QrWriterInterface;
 use App\Application\Services\QrCode\FileStorageInterface;
 use App\Infrastructure\Qr\EndroidQrWriter;
 use App\Infrastructure\Persistence\LocalFileStorage;
+use App\Application\Services\GeoIp\GeoIpServiceInterface;
+use App\Infrastructure\GeoIp\IpDataGeoIpService;
 
 
 return function (ContainerBuilder $containerBuilder) {
@@ -73,5 +75,6 @@ return function (ContainerBuilder $containerBuilder) {
         QrCodeCreator::class => \DI\autowire(QrCodeCreator::class),
         QrWriterInterface::class => \DI\autowire(EndroidQrWriter::class),
         FileStorageInterface::class => \DI\autowire(LocalFileStorage::class),
+        GeoIpServiceInterface::class => \DI\autowire(IpDataGeoIpService::class),
     ]);
 };
