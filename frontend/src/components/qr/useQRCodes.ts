@@ -141,7 +141,6 @@ export default function useQRCodes(initial?: { page?: number; perPage?: number; 
     setPerPage(n);
     setPage(1);
     pushUrl(1, query, n);
-    loadItems({ page: 1, perPage: n, query });
   };
 
   const updateQuery = (q: string) => {
@@ -149,7 +148,6 @@ export default function useQRCodes(initial?: { page?: number; perPage?: number; 
     setQuery(q);
     setPage(1);
     pushUrl(1, q, perPage);
-    loadItems({ page: 1, perPage, query: q });
   };
 
   return {
