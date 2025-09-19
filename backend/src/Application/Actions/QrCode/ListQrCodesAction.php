@@ -38,6 +38,17 @@ class ListQrCodesAction extends QrCodeAction
             $items = $this->qrCodeRepository->findAllForUser($userId);
         }
 
-        return $this->respondWithData($items);
+        // build base url from env and ensure no trailing slash
+        $baseUrl = getenv('URL_BASE') ?: '';
+        $baseUrl = rtrim($baseUrl, '/');
+
+        $urlBaseToken = ($baseUrl !== '' ? $baseUrl : '') . '/r/';
+
+        $response = [
+            'items' => $items,
+            'url_base_token' => $urlBaseToken,
+        ];
+
+        return $this->respondWithData($response);
     }
 }

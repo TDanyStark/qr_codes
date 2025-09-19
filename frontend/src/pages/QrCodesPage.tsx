@@ -31,6 +31,7 @@ type Qr = {
 
 export default function QrCodesPage() {
   const [items, setItems] = useState<Qr[]>([]);
+  const [urlBaseToken, setUrlBaseToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   // Using sonner to show small toasts. Install with:
@@ -47,8 +48,28 @@ export default function QrCodesPage() {
       });
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
-      const d = data?.data ?? data;
-      setItems(d);
+      // API may return either an array of items or an object { items, url_base_token }
+      let d = data?.data ?? data;
+      let urlBaseToken: string | null = null;
+
+      if (d && typeof d === "object" && !Array.isArray(d) && d.items) {
+        urlBaseToken = d.url_base_token ?? null;
+        setUrlBaseToken(urlBaseToken);
+        d = d.items;
+      } else {
+        setUrlBaseToken(null);
+      }
+
+      // ensure we have an array
+      if (!Array.isArray(d)) d = [];
+
+      // if urlBaseToken present, store it in state (we'll use it in render)
+      if (urlBaseToken) {
+        console.log("url_base_token:", urlBaseToken);
+      }
+
+      // set items directly (no per-item augmentation)
+      setItems(d as Qr[]);
     } catch (err) {
       setError(String(err));
     } finally {
@@ -105,7 +126,8 @@ export default function QrCodesPage() {
                       )}
                     </TableCell>
                     <TableCell className="font-mono text-sm max-w-[200px]">
-                      <button
+                        <div className="flex items-center gap-2">
+                        <button
                         title="Copiar token"
                         onClick={async () => {
                           try {
@@ -119,6 +141,20 @@ export default function QrCodesPage() {
                       >
                         {q.token}
                       </button>
+                        {/* visit button when urlBaseToken available */}
+                        {urlBaseToken ? (
+                          <a
+                            href={`${urlBaseToken}${q.token}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            title="Visitar QR"
+                            onClick={(e) => e.stopPropagation()}
+                            className="inline-flex items-center p-1 rounded hover:bg-muted"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        ) : null}
+                        </div>
                     </TableCell>
                     <TableCell className="max-w-[200px]">
                       <div className="flex items-center gap-2">

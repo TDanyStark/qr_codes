@@ -88,6 +88,7 @@ class QrCode implements JsonSerializable
     {
         return [
             'id' => $this->id,
+            
             'token' => $this->token,
             'owner_user_id' => $this->ownerUserId,
             'target_url' => $this->targetUrl,
