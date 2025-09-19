@@ -91,7 +91,7 @@ export default function CreateQrCode({ onQrCreated }: CreateQrCodeProps) {
       }
       if (returnedRedirect) setRedirectLink(returnedRedirect);
       // mark as created so we don't allow another create until user clicks "Crear Otro"
-  setCreated(true);
+      setCreated(true);
       // notify parent that a QR was created
       onQrCreated?.();
     } catch (err: unknown) {

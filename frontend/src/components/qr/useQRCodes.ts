@@ -150,13 +150,11 @@ export default function useQRCodes(initial?: {
   const updatePerPage = (n: number) => {
     setPerPage(n);
     setPage(1);
-    pushUrl(1, query, n);
   };
 
   const updateQuery = (q: string) => {
     setQuery(q);
     setPage(1);
-    pushUrl(1, q, perPage);
   };
 
   return {
