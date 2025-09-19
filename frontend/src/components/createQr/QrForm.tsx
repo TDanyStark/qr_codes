@@ -35,12 +35,13 @@ export const QrForm = memo(function QrForm({ formData, updateField }: QrFormProp
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="name">Nombre (opcional)</Label>
+        <Label htmlFor="name">Nombre</Label>
         <Input
           id="name"
             value={formData.name}
             onChange={(e) => updateField("name", e.target.value)}
             placeholder="Ej: QR de venta"
+            required
           />
       </div>
 
