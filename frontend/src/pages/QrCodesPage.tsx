@@ -118,12 +118,12 @@ export default function QrCodesPage() {
   }, []);
 
   // update URL when page or query changes (debounced for query handled below)
-  const pushUrl = (p: number, q: string) => {
+  const pushUrl = (p: number, q: string, pp?: number) => {
     const params = new URLSearchParams(window.location.search);
     params.set("page", String(p));
     if (q) params.set("query", q);
     else params.delete("query");
-    params.set("per_page", String(perPage));
+    params.set("per_page", String(typeof pp !== "undefined" ? pp : perPage));
     const newUrl = `${window.location.pathname}?${params.toString()}`;
     window.history.replaceState({}, "", newUrl);
   };
@@ -168,7 +168,8 @@ export default function QrCodesPage() {
               const n = parseInt(v, 10) || 20;
               setPerPage(n);
               setPage(1);
-              pushUrl(1, query);
+              // ensure URL reflects the newly selected perPage value (avoid stale closure)
+              pushUrl(1, query, n);
               loadItems({ page: 1, perPage: n, query });
             }}>
               <SelectTrigger size="sm">

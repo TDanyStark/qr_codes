@@ -42,10 +42,15 @@ class ListQrCodesAction extends QrCodeAction
 
         $query = isset($params['query']) ? trim((string)$params['query']) : null;
 
-        // per-page from settings, fallback to environment or default 10
-        $perPage = (int)($this->settings->get('pagination.per_page') ?? getenv('PER_PAGE') ?? getenv('PERPAGE') ?? 10);
+        // per-page: prefer query param, then settings/env, fallback to default 10
+        $perPage = isset($params['per_page']) ? (int)$params['per_page'] : (int)($this->settings->get('pagination.per_page') ?? getenv('PER_PAGE') ?? getenv('PERPAGE') ?? 10);
         if ($perPage < 1) {
             $perPage = 10;
+        }
+        // clamp to a reasonable maximum to avoid very large requests
+        $maxPerPage = 100;
+        if ($perPage > $maxPerPage) {
+            $perPage = $maxPerPage;
         }
 
         // fetch paginated results
