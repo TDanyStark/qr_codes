@@ -170,7 +170,7 @@ export function useEditQrCode({
       // Try regenerate endpoint (preferred). If it doesn't exist, fall back to GET to fetch updated links.
       let res;
       try {
-        res = await axios.post(`/api/qrcodes/${qr.id}/regenerate`, payload, {
+        res = await axios.post(`/api/qrcodes/${qr.id}/edit`, payload, {
           headers: { Authorization: `Bearer ${token}` },
         });
       } catch (errUnknown: unknown) {
