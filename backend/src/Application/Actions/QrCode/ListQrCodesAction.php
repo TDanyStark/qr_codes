@@ -5,9 +5,21 @@ declare(strict_types=1);
 namespace App\Application\Actions\QrCode;
 
 use Psr\Http\Message\ResponseInterface as Response;
+use App\Application\Services\UrlBuilder;
+
+use Psr\Log\LoggerInterface;
+use App\Domain\QrCode\QrCodeRepository;
+use App\Application\Settings\SettingsInterface;
 
 class ListQrCodesAction extends QrCodeAction
 {
+    private UrlBuilder $urlBuilder;
+
+    public function __construct(LoggerInterface $logger, QrCodeRepository $qrCodeRepository, SettingsInterface $settings, UrlBuilder $urlBuilder)
+    {
+        parent::__construct($logger, $qrCodeRepository, $settings);
+        $this->urlBuilder = $urlBuilder;
+    }
     protected function action(): Response
     {
         $jwt = $this->request->getAttribute('jwt');
@@ -63,10 +75,7 @@ class ListQrCodesAction extends QrCodeAction
         $items = $result['items'] ?? [];
         $total = $result['total'] ?? 0;
 
-        // build base url from env and ensure no trailing slash
-        $baseUrl = getenv('URL_BASE') ?: '';
-        $baseUrl = rtrim($baseUrl, '/');
-        $urlBaseToken = ($baseUrl !== '' ? $baseUrl : '') . '/r/';
+    $urlBaseToken = $this->urlBuilder->getUrlBaseToken();
 
         $response = [
             'items' => $items,

@@ -12,7 +12,8 @@ use App\Application\Services\QrCode\QrWriterInterface;
 use App\Application\Services\QrCode\FileStorageInterface;
 use App\Application\Services\QrCode\QrColorParserInterface;
 use Endroid\QrCode\Color\Color;
-use App\Infrastructure\Utils\PublicDirectoryResolver;
+use App\Application\Services\PublicDirectoryResolver;
+use App\Application\Services\UrlBuilder;
 
 class ViewQrCodeAction extends QrCodeAction
 {
@@ -20,14 +21,16 @@ class ViewQrCodeAction extends QrCodeAction
     private FileStorageInterface $fileStorage;
     private QrColorParserInterface $colorParser;
     private PublicDirectoryResolver $publicResolver;
+    private UrlBuilder $urlBuilder;
 
-    public function __construct(LoggerInterface $logger, QrCodeRepository $qrCodeRepository, SettingsInterface $settings, QrWriterInterface $qrWriter, FileStorageInterface $fileStorage, QrColorParserInterface $colorParser, PublicDirectoryResolver $publicResolver)
+    public function __construct(LoggerInterface $logger, QrCodeRepository $qrCodeRepository, SettingsInterface $settings, QrWriterInterface $qrWriter, FileStorageInterface $fileStorage, QrColorParserInterface $colorParser, PublicDirectoryResolver $publicResolver, UrlBuilder $urlBuilder)
     {
         parent::__construct($logger, $qrCodeRepository, $settings);
         $this->qrWriter = $qrWriter;
         $this->fileStorage = $fileStorage;
         $this->colorParser = $colorParser;
         $this->publicResolver = $publicResolver;
+        $this->urlBuilder = $urlBuilder;
     }
 
     protected function action(): Response
@@ -43,9 +46,8 @@ class ViewQrCodeAction extends QrCodeAction
         $token = $qr->getToken();
 
         // build redirect URL
-        $baseUrl = getenv('URL_BASE') ?: '';
-        $baseUrl = rtrim($baseUrl, '/');
-        $redirect = ($baseUrl !== '' ? $baseUrl : '') . '/r/' . $token;
+    // build redirect URL
+    $redirect = $this->urlBuilder->buildRedirectUrl($token);
 
         $pngRel = '/tmp/qrcodes/' . $token . '.png';
         $svgRel = '/tmp/qrcodes/' . $token . '.svg';

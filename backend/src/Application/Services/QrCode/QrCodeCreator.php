@@ -7,6 +7,7 @@ namespace App\Application\Services\QrCode;
 use App\Domain\QrCode\QrCode as DomainQrCode;
 use App\Domain\QrCode\QrCodeRepository;
 use Endroid\QrCode\Color\Color;
+use App\Application\Services\UrlBuilder;
 
 class QrCodeCreator
 {
@@ -14,13 +15,15 @@ class QrCodeCreator
     private QrWriterInterface $qrWriter;
     private FileStorageInterface $fileStorage;
     private QrColorParserInterface $colorParser;
+    private UrlBuilder $urlBuilder;
 
-    public function __construct(QrCodeRepository $qrCodeRepository, QrWriterInterface $qrWriter, FileStorageInterface $fileStorage, QrColorParserInterface $colorParser)
+    public function __construct(QrCodeRepository $qrCodeRepository, QrWriterInterface $qrWriter, FileStorageInterface $fileStorage, QrColorParserInterface $colorParser, UrlBuilder $urlBuilder)
     {
         $this->qrCodeRepository = $qrCodeRepository;
         $this->qrWriter = $qrWriter;
         $this->fileStorage = $fileStorage;
         $this->colorParser = $colorParser;
+        $this->urlBuilder = $urlBuilder;
     }
 
     /**
@@ -49,10 +52,8 @@ class QrCodeCreator
     $fgColor = $this->colorParser->parseHexColor($foreground);
     $bgColor = $this->colorParser->parseHexColor($background);
 
-        // build redirect URL
-        $baseUrl = getenv('URL_BASE') ?: '';
-        $baseUrl = rtrim($baseUrl, '/');
-        $qrData = ($baseUrl !== '' ? $baseUrl : '') . '/r/' . $token;
+    // build redirect URL
+    $qrData = $this->urlBuilder->buildRedirectUrl($token);
 
         // generate via injected writer
         $generated = $this->qrWriter->generate($qrData, $fgColor, $bgColor);
