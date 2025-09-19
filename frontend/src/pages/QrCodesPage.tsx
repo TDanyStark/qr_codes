@@ -21,12 +21,11 @@ export default function QrCodesPage() {
     setQuery,
     loadItems,
     updatePerPage,
+    updateQuery,
   } = useQRCodes();
 
   const debounced = useDebouncedCallback((val: string) => {
-    setPage(1); // reset page on new search
-    setQuery(val);
-    loadItems({ page: 1, perPage, query: val });
+    updateQuery(val);
   }, 450);
 
   return (

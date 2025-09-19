@@ -104,6 +104,14 @@ export default function useQRCodes(initial?: { page?: number; perPage?: number; 
     loadItems({ page: 1, perPage: n, query });
   };
 
+  const updateQuery = (q: string) => {
+    // update query, reset to first page, sync URL and reload
+    setQuery(q);
+    setPage(1);
+    pushUrl(1, q, perPage);
+    loadItems({ page: 1, perPage, query: q });
+  };
+
   return {
     items,
     urlBaseToken,
@@ -118,5 +126,6 @@ export default function useQRCodes(initial?: { page?: number; perPage?: number; 
     setQuery,
     loadItems,
     updatePerPage,
+    updateQuery,
   } as const;
 }
