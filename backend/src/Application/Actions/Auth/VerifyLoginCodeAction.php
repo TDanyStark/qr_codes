@@ -6,7 +6,7 @@ namespace App\Application\Actions\Auth;
 
 use App\Application\Actions\Action;
 use App\Domain\User\UserRepository;
-use App\Infrastructure\Security\JwtServiceInterface;
+use App\Application\Security\JwtServiceInterface;
 use Psr\Log\LoggerInterface;
 use Slim\Exception\HttpBadRequestException;
 

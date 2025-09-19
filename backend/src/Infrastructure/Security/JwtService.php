@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Security;
 
 use App\Application\Settings\SettingsInterface;
+use App\Application\Security\JwtServiceInterface;
 use Firebase\JWT\JWT;
 
 class JwtService implements JwtServiceInterface

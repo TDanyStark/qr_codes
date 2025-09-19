@@ -14,7 +14,7 @@ use App\Infrastructure\Security\JwtService;
 use \App\Infrastructure\Mailer\MailerInterface;
 use \App\Infrastructure\Mailer\BasicMailer;
 use \App\Infrastructure\Mailer\SmtpMailer;
-use App\Infrastructure\Security\JwtServiceInterface;
+use App\Application\Security\JwtServiceInterface;
 use \App\Application\Middleware\AdminRoleMiddleware;
 use \App\Application\Services\QrCode\QrCodeCreator;
 use App\Application\Services\QrCode\QrWriterInterface;
