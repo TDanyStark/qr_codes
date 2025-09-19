@@ -21,7 +21,7 @@ export default function QrCodesPage() {
     loadItems,
     updatePerPage,
     updateQuery,
-  } = useQRCodes();
+  } = useQRCodes({ perPage: 10 });
 
   const debounced = useDebouncedCallback((val: string) => {
     updateQuery(val);
@@ -32,6 +32,8 @@ export default function QrCodesPage() {
       <Toaster position="top-right" richColors />
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-4xl font-semibold">QR Codes</h1>
+      </div>
+      <div className="mb-4 flex justify-end">
         <CreateQrCode onQrCreated={loadItems} />
       </div>
 

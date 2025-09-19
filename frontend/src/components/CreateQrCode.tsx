@@ -165,7 +165,7 @@ export default function CreateQrCode({ onQrCreated }: CreateQrCodeProps) {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button>Crear QR</Button>
+        <Button>Crear QR (n)</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[900px] max-h-[650px] overflow-hidden flex flex-col">
         <DialogHeader>
