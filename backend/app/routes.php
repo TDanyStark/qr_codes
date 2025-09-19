@@ -35,8 +35,8 @@ return function (App $app) {
             $group->post('', CreateUserAction::class);
             $group->get('/{id}', ViewUserAction::class);
         })
-        ->add(AdminRoleMiddleware::class)
-        ->add(JwtAuthMiddleware::class);
+            ->add(AdminRoleMiddleware::class)
+            ->add(JwtAuthMiddleware::class);
 
         // QR Codes endpoints
         $group->group('/qrcodes', function (Group $group) {
