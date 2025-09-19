@@ -17,81 +17,81 @@ use App\Application\Services\UrlBuilder;
 
 class ViewQrCodeAction extends QrCodeAction
 {
-    private QrWriterInterface $qrWriter;
-    private FileStorageInterface $fileStorage;
-    private QrColorParserInterface $colorParser;
-    private PublicDirectoryResolver $publicResolver;
-    private UrlBuilder $urlBuilder;
+  private QrWriterInterface $qrWriter;
+  private FileStorageInterface $fileStorage;
+  private QrColorParserInterface $colorParser;
+  private PublicDirectoryResolver $publicResolver;
+  private UrlBuilder $urlBuilder;
 
-    public function __construct(LoggerInterface $logger, QrCodeRepository $qrCodeRepository, SettingsInterface $settings, QrWriterInterface $qrWriter, FileStorageInterface $fileStorage, QrColorParserInterface $colorParser, PublicDirectoryResolver $publicResolver, UrlBuilder $urlBuilder)
-    {
-        parent::__construct($logger, $qrCodeRepository, $settings);
-        $this->qrWriter = $qrWriter;
-        $this->fileStorage = $fileStorage;
-        $this->colorParser = $colorParser;
-        $this->publicResolver = $publicResolver;
-        $this->urlBuilder = $urlBuilder;
+  public function __construct(LoggerInterface $logger, QrCodeRepository $qrCodeRepository, SettingsInterface $settings, QrWriterInterface $qrWriter, FileStorageInterface $fileStorage, QrColorParserInterface $colorParser, PublicDirectoryResolver $publicResolver, UrlBuilder $urlBuilder)
+  {
+    parent::__construct($logger, $qrCodeRepository, $settings);
+    $this->qrWriter = $qrWriter;
+    $this->fileStorage = $fileStorage;
+    $this->colorParser = $colorParser;
+    $this->publicResolver = $publicResolver;
+    $this->urlBuilder = $urlBuilder;
+  }
+
+  protected function action(): Response
+  {
+    $id = (int)$this->resolveArg('id');
+
+    try {
+      $qr = $this->qrCodeRepository->findOfId($id);
+    } catch (\Throwable $e) {
+      return $this->respondWithData(['error' => 'QR not found'], 404);
     }
 
-    protected function action(): Response
-    {
-        $id = (int)$this->resolveArg('id');
+    $token = $qr->getToken();
 
-        try {
-            $qr = $this->qrCodeRepository->findOfId($id);
-        } catch (\Throwable $e) {
-            return $this->respondWithData(['error' => 'QR not found'], 404);
-        }
-
-        $token = $qr->getToken();
-
-        // build redirect URL
+    // build redirect URL
     // build redirect URL
     $redirect = $this->urlBuilder->buildRedirectUrl($token);
 
-        $pngRel = '/tmp/qrcodes/' . $token . '.png';
-        $svgRel = '/tmp/qrcodes/' . $token . '.svg';
+    $pngRel = '/tmp/qrcodes/' . $token . '.png';
+    $svgRel = '/tmp/qrcodes/' . $token . '.svg';
 
-        $publicDir = $this->publicResolver->getPublicDir();
+    $publicDir = $this->publicResolver->getPublicDir();
 
-        $pngFull = $publicDir . $pngRel;
-        $svgFull = $publicDir . $svgRel;
+    $pngFull = $publicDir . $pngRel;
+    $svgFull = $publicDir . $svgRel;
 
-        $pngExists = is_file($pngFull);
-        $svgExists = is_file($svgFull);
+    $pngExists = is_file($pngFull);
+    $svgExists = is_file($svgFull);
 
-        // If files are missing regenerate them using writer and storage
-        if (!($pngExists && $svgExists)) {
-            // use default colors (black on white) — no color info is stored currently
-            $fg = $this->colorParser->parseHexColor('#000000');
-            $bg = $this->colorParser->parseHexColor('#ffffff');
+    // If files are missing regenerate them using writer and storage
+    if (!($pngExists && $svgExists)) {
+      // use default colors (black on white) — no color info is stored currently
+      $fg = $this->colorParser->parseHexColor('#000000');
+      $bg = $this->colorParser->parseHexColor('#ffffff');
 
-            try {
-                $generated = $this->qrWriter->generate($redirect, $fg, $bg);
-                // save
-                $this->fileStorage->save($pngRel, $generated['png']);
-                $this->fileStorage->save($svgRel, $generated['svg']);
-                $pngExists = true;
-                $svgExists = true;
-            } catch (\Throwable $t) {
-                $this->logger->error('Failed to (re)generate QR images: ' . $t->getMessage());
-            }
-        }
-
-        $links = [
-            'png' => $pngRel,
-            'svg' => $svgRel,
-            'redirect' => $redirect,
-        ];
-
-        $data = [
-            'qr' => $qr->toArray(),
-            'links' => $links,
-            'images_present' => ($pngExists && $svgExists),
-        ];
-
-        return $this->respondWithData($data, 200);
+      try {
+        $generated = $this->qrWriter->generate($redirect, $fg, $bg);
+        // save
+        $this->fileStorage->save($pngRel, $generated['png']);
+        $this->fileStorage->save($svgRel, $generated['svg']);
+        $pngExists = true;
+        $svgExists = true;
+      } catch (\Throwable $t) {
+        $this->logger->error('Failed to (re)generate QR images: ' . $t->getMessage());
+      }
     }
 
-    // parseHexColor removed — use QrColorParserInterface
+    $links = [
+      'png' => $pngRel,
+      'svg' => $svgRel,
+      'redirect' => $redirect,
+    ];
+
+    $data = [
+      'qr' => $qr->toArray(),
+      'links' => $links,
+      'images_present' => ($pngExists && $svgExists),
+    ];
+
+    return $this->respondWithData($data, 200);
+  }
+
+  // parseHexColor removed — use QrColorParserInterface
 }

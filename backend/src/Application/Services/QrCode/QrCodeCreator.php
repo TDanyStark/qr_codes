@@ -49,11 +49,11 @@ class QrCodeCreator
         $domainQr = new DomainQrCode(null, $token, $userId, $targetUrl, $name);
         $created = $this->qrCodeRepository->create($domainQr);
 
-    $fgColor = $this->colorParser->parseHexColor($foreground);
-    $bgColor = $this->colorParser->parseHexColor($background);
+        $fgColor = $this->colorParser->parseHexColor($foreground);
+        $bgColor = $this->colorParser->parseHexColor($background);
 
-    // build redirect URL
-    $qrData = $this->urlBuilder->buildRedirectUrl($token);
+        // build redirect URL
+        $qrData = $this->urlBuilder->buildRedirectUrl($token);
 
         // generate via injected writer
         $generated = $this->qrWriter->generate($qrData, $fgColor, $bgColor);

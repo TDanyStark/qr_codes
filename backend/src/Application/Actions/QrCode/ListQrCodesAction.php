@@ -75,7 +75,7 @@ class ListQrCodesAction extends QrCodeAction
         $items = $result['items'] ?? [];
         $total = $result['total'] ?? 0;
 
-    $urlBaseToken = $this->urlBuilder->getUrlBaseToken();
+        $urlBaseToken = $this->urlBuilder->getUrlBaseToken();
 
         $response = [
             'items' => $items,
