@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
 
 export type Qr = {
   id: number;
@@ -24,6 +25,20 @@ interface Normalized {
   raw: unknown;
 }
 
+type ApiResponse = {
+  statusCode?: number;
+  data?: {
+    items?: Qr[];
+    pagination?: {
+      page?: number;
+      per_page?: number;
+      total?: number;
+      total_pages?: number;
+    };
+    url_base_token?: string;
+  };
+};
+
 export default function useQRCodes(initial?: {
   page?: number;
   perPage?: number;
@@ -40,40 +55,26 @@ export default function useQRCodes(initial?: {
   const fetchQRCodes = useCallback(
     async (p: number, pp: number, q: string): Promise<Normalized> => {
       const token = localStorage.getItem("token");
-      const params = new URLSearchParams();
-      params.set("page", String(p));
-      params.set("per_page", String(pp));
+      const params = new URLSearchParams({
+        page: String(p),
+        per_page: String(pp),
+      });
       if (q) params.set("query", q);
-      const res = await fetch(`/api/qrcodes?${params.toString()}`, {
+
+      const res = await axios.get(`/api/qrcodes?${params.toString()}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
-      if (!res.ok) throw new Error(await res.text());
-      const raw = await res.json();
-      const rawObj =
-        raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
-      const dataLayer = (
-        rawObj && "data" in rawObj ? rawObj.data : raw
-      ) as unknown;
-      let itemsArr: Qr[] = [];
-      let baseToken: string | null = null;
-      let pagination: Pagination = null;
-      if (
-        dataLayer &&
-        typeof dataLayer === "object" &&
-        !Array.isArray(dataLayer)
-      ) {
-        const layerObj = dataLayer as Record<string, unknown>;
-        if (Array.isArray(layerObj.items)) itemsArr = layerObj.items as Qr[];
-        if (typeof layerObj.url_base_token === "string")
-          baseToken = layerObj.url_base_token;
-        const pagCandidate = (layerObj.pagination ??
-          (rawObj.pagination as unknown)) as Pagination;
-        if (pagCandidate && typeof pagCandidate === "object")
-          pagination = pagCandidate;
-      } else if (Array.isArray(dataLayer)) {
-        itemsArr = dataLayer as Qr[];
-      }
-      return { items: itemsArr, pagination, urlBaseToken: baseToken, raw };
+      if (res.status !== 200) throw new Error(`Error ${res.status}: ${res.statusText}`);
+
+      const json: ApiResponse = res.data;
+      const data = json.data ?? {};
+
+      return {
+        items: data.items ?? [],
+        pagination: (data.pagination ?? null) as Pagination,
+        urlBaseToken: data.url_base_token ?? null,
+        raw: json,
+      };
     },
     []
   );
