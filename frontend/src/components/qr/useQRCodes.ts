@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 
 export type Qr = {
   id: number;
@@ -20,16 +20,28 @@ export default function useQRCodes(initial?: { page?: number; perPage?: number; 
   const [totalPages, setTotalPages] = useState<number>(1);
   const [query, setQuery] = useState<string>(initial?.query ?? "");
 
-  const loadItems = async (opts?: { page?: number; perPage?: number; query?: string }) => {
+  // derive initial values (used by the init effect). Keeping these as
+  // primitives makes it obvious to ESLint what the effect depends on.
+  const initialPage = initial?.page ?? 1;
+  const initialPerPage = initial?.perPage ?? 20;
+  const initialQuery = initial?.query ?? "";
+
+  // Refs to hold the latest state values so memoized callbacks can read
+  // them without needing to declare state vars as dependencies.
+  const pageRef = useRef<number>(page);
+  const perPageRef = useRef<number>(perPage);
+  const queryRef = useRef<string>(query);
+
+  const loadItems = useCallback(async (opts?: { page?: number; perPage?: number; query?: string }) => {
     setLoading(true);
     setError(null);
     try {
       const token = localStorage.getItem("token");
 
-      // Resolve parameters: prefer opts, fall back to current state
-      const pageNum = opts?.page ?? page;
-      const perPageNum = opts?.perPage ?? perPage;
-      const searchQuery = typeof opts?.query !== "undefined" ? opts!.query : query;
+      // Resolve parameters: prefer opts, fall back to current refs
+      const pageNum = opts?.page ?? pageRef.current;
+      const perPageNum = opts?.perPage ?? perPageRef.current;
+      const searchQuery = typeof opts?.query !== "undefined" ? opts!.query : queryRef.current;
 
       // Build query string for API
       const params = new URLSearchParams();
@@ -82,36 +94,47 @@ export default function useQRCodes(initial?: { page?: number; perPage?: number; 
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  // initialize from URL once
+  // initialize from URL (runs when initial* values change or loadItems reference changes)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const pageNum = parseInt(params.get("page") || String(initial?.page ?? "1"), 10) || 1;
-    const searchQuery = params.get("query") || initial?.query || "";
-    const perPageNum = parseInt(params.get("per_page") || String(initial?.perPage ?? "20"), 10) || 20;
+    const pageNum = parseInt(params.get("page") || String(initialPage), 10) || 1;
+    const searchQuery = params.get("query") || initialQuery || "";
+    const perPageNum = parseInt(params.get("per_page") || String(initialPerPage), 10) || 20;
     setPage(pageNum);
     setQuery(searchQuery);
     setPerPage(perPageNum);
     loadItems({ page: pageNum, perPage: perPageNum, query: searchQuery });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [initialPage, initialPerPage, initialQuery, loadItems]);
 
-  const pushUrl = (p: number, q: string, pp?: number) => {
+  // Stable pushUrl using refs so it doesn't need to change when state changes
+  const pushUrl = useCallback((p: number, q: string, pp?: number) => {
     const params = new URLSearchParams(window.location.search);
     params.set("page", String(p));
     if (q) params.set("query", q);
     else params.delete("query");
-    params.set("per_page", String(typeof pp !== "undefined" ? pp : perPage));
+    params.set("per_page", String(typeof pp !== "undefined" ? pp : perPageRef.current));
     const newUrl = `${window.location.pathname}?${params.toString()}`;
     window.history.replaceState({}, "", newUrl);
-  };
+  }, []);
 
   useEffect(() => {
+    // sync URL and reload when page/perPage/query change
     pushUrl(page, query);
     loadItems({ page, perPage, query });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, perPage, query, loadItems, pushUrl]);
+
+  // keep refs in sync with state so memoized callbacks read latest values
+  useEffect(() => {
+    pageRef.current = page;
   }, [page]);
+  useEffect(() => {
+    perPageRef.current = perPage;
+  }, [perPage]);
+  useEffect(() => {
+    queryRef.current = query;
+  }, [query]);
 
   const updatePerPage = (n: number) => {
     // set per page and reset to first page, sync URL and reload immediately
