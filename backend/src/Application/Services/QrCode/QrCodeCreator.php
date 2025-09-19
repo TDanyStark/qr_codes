@@ -6,18 +6,19 @@ namespace App\Application\Services\QrCode;
 
 use App\Domain\QrCode\QrCode as DomainQrCode;
 use App\Domain\QrCode\QrCodeRepository;
-use Endroid\QrCode\Writer\PngWriter;
-use Endroid\QrCode\Writer\SvgWriter;
 use Endroid\QrCode\Color\Color;
-use Endroid\QrCode\QrCode as EndroidQrCode;
 
 class QrCodeCreator
 {
     private QrCodeRepository $qrCodeRepository;
+    private QrWriterInterface $qrWriter;
+    private FileStorageInterface $fileStorage;
 
-    public function __construct(QrCodeRepository $qrCodeRepository)
+    public function __construct(QrCodeRepository $qrCodeRepository, QrWriterInterface $qrWriter, FileStorageInterface $fileStorage)
     {
         $this->qrCodeRepository = $qrCodeRepository;
+        $this->qrWriter = $qrWriter;
+        $this->fileStorage = $fileStorage;
     }
 
     /**
@@ -43,16 +44,6 @@ class QrCodeCreator
         $domainQr = new DomainQrCode(null, $token, $userId, $targetUrl, $name);
         $created = $this->qrCodeRepository->create($domainQr);
 
-        // prepare public tmp dir
-        $publicDir = $this->resolvePublicDir();
-        $tmpDir = $publicDir . '/tmp/qrcodes';
-        if (!is_dir($tmpDir)) {
-            mkdir($tmpDir, 0775, true);
-        }
-
-        $pngPath = $tmpDir . '/' . $token . '.png';
-        $svgPath = $tmpDir . '/' . $token . '.svg';
-
         $fgColor = $this->parseHexColor($foreground);
         $bgColor = $this->parseHexColor($background);
 
@@ -61,33 +52,18 @@ class QrCodeCreator
         $baseUrl = rtrim($baseUrl, '/');
         $qrData = ($baseUrl !== '' ? $baseUrl : '') . '/r/' . $token;
 
-        // create PNG
-        $qrForPng = new EndroidQrCode(
-            data: $qrData,
-            size: 1000,
-            margin: 10,
-            foregroundColor: $fgColor,
-            backgroundColor: $bgColor
-        );
-        $pngWriter = new PngWriter();
-        $resultPng = $pngWriter->write($qrForPng);
-        file_put_contents($pngPath, $resultPng->getString());
+        // generate via injected writer
+        $generated = $this->qrWriter->generate($qrData, $fgColor, $bgColor);
 
-        // create SVG
-        $svgWriter = new SvgWriter();
-        $qrForSvg = new EndroidQrCode(
-            data: $qrData,
-            size: 1000,
-            margin: 10,
-            foregroundColor: $fgColor,
-            backgroundColor: $bgColor
-        );
-        $resultSvg = $svgWriter->write($qrForSvg);
-        file_put_contents($svgPath, $resultSvg->getString());
+        // store via injected storage
+        $pngRel = 'tmp/qrcodes/' . $token . '.png';
+        $svgRel = 'tmp/qrcodes/' . $token . '.svg';
+        $this->fileStorage->save($pngRel, $generated['png']);
+        $this->fileStorage->save($svgRel, $generated['svg']);
 
         $links = [
-            'png' => '/tmp/qrcodes/' . $token . '.png',
-            'svg' => '/tmp/qrcodes/' . $token . '.svg',
+            'png' => '/' . $pngRel,
+            'svg' => '/' . $svgRel,
             'redirect' => $qrData,
         ];
 
@@ -108,25 +84,5 @@ class QrCodeCreator
         }
 
         return new Color($r, $g, $b);
-    }
-
-    private function resolvePublicDir(): string
-    {
-        // try to find backend root by walking up from this file
-        $dir = __DIR__;
-        $backendRoot = null;
-        while ($dir && $dir !== dirname($dir)) {
-            if (basename($dir) === 'backend') {
-                $backendRoot = $dir;
-                break;
-            }
-            $dir = dirname($dir);
-        }
-
-        if ($backendRoot === null) {
-            return dirname(__DIR__, 5) . '/public';
-        }
-
-        return $backendRoot . '/public';
     }
 }

@@ -16,8 +16,11 @@ use \App\Infrastructure\Mailer\BasicMailer;
 use \App\Infrastructure\Mailer\SmtpMailer;
 use App\Infrastructure\Security\JwtServiceInterface;
 use \App\Application\Middleware\AdminRoleMiddleware;
-
 use \App\Application\Services\QrCode\QrCodeCreator;
+use App\Application\Services\QrCode\QrWriterInterface;
+use App\Application\Services\QrCode\FileStorageInterface;
+use App\Infrastructure\Qr\EndroidQrWriter;
+use App\Infrastructure\Persistence\LocalFileStorage;
 
 
 return function (ContainerBuilder $containerBuilder) {
@@ -54,9 +57,6 @@ return function (ContainerBuilder $containerBuilder) {
 
             return new PDO($dsn, $user, $pass, $options);
         },
-        JwtServiceInterface::class => function (ContainerInterface $c) {
-            return new JwtService($c->get(SettingsInterface::class));
-        },
         MailerInterface::class => function (ContainerInterface $c) {
             $settings = $c->get(SettingsInterface::class);
             $logger = $c->get(LoggerInterface::class);
@@ -68,10 +68,10 @@ return function (ContainerBuilder $containerBuilder) {
 
             return new BasicMailer($logger, $settings);
         },
-        AdminRoleMiddleware::class => function (ContainerInterface $c) {
-            return new AdminRoleMiddleware();
-        },
-        // Application services
+        JwtServiceInterface::class => \DI\autowire(JwtService::class),
+        AdminRoleMiddleware::class => \DI\autowire(AdminRoleMiddleware::class),
         QrCodeCreator::class => \DI\autowire(QrCodeCreator::class),
+        QrWriterInterface::class => \DI\autowire(EndroidQrWriter::class),
+        FileStorageInterface::class => \DI\autowire(LocalFileStorage::class),
     ]);
 };

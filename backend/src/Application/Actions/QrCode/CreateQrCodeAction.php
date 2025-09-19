@@ -7,12 +7,14 @@ namespace App\Application\Actions\QrCode;
 use App\Application\Actions\Action;
 use App\Application\Services\QrCode\QrCodeCreator;
 use Psr\Http\Message\ResponseInterface as Response;
+use \App\Domain\QrCode\QrCodeRepository;
+use \Psr\Log\LoggerInterface;
 
 class CreateQrCodeAction extends QrCodeAction
 {
     private QrCodeCreator $creator;
 
-    public function __construct(\Psr\Log\LoggerInterface $logger, \App\Domain\QrCode\QrCodeRepository $qrCodeRepository, QrCodeCreator $creator)
+    public function __construct(LoggerInterface $logger, QrCodeRepository $qrCodeRepository, QrCodeCreator $creator)
     {
         parent::__construct($logger, $qrCodeRepository);
         $this->creator = $creator;
