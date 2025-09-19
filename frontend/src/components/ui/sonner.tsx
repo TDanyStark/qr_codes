@@ -1,12 +1,15 @@
 import { useTheme } from "next-themes"
-import { Toaster as Sonner, ToasterProps } from "sonner"
+import { Toaster as Sonner } from "sonner"
 
-const Toaster = ({ ...props }: ToasterProps) => {
+// Derive the props type from the Sonner Toaster component to avoid depending on a non-exported type
+type LocalToasterProps = React.ComponentProps<typeof Sonner>
+
+const Toaster = (props: LocalToasterProps) => {
   const { theme = "system" } = useTheme()
 
   return (
     <Sonner
-      theme={theme as ToasterProps["theme"]}
+      theme={theme as LocalToasterProps["theme"]}
       className="toaster group"
       style={
         {
