@@ -25,41 +25,58 @@ export default function useQRCodes(initial?: { page?: number; perPage?: number; 
     setError(null);
     try {
       const token = localStorage.getItem("token");
-      const p = opts?.page ?? page;
-      const pp = opts?.perPage ?? perPage;
-      const q = typeof opts?.query !== "undefined" ? opts!.query : query;
 
+      // Resolve parameters: prefer opts, fall back to current state
+      const pageNum = opts?.page ?? page;
+      const perPageNum = opts?.perPage ?? perPage;
+      const searchQuery = typeof opts?.query !== "undefined" ? opts!.query : query;
+
+      // Build query string for API
       const params = new URLSearchParams();
-      params.set("page", String(p));
-      params.set("per_page", String(pp));
-      if (q) params.set("query", q);
+      params.set("page", String(pageNum));
+      params.set("per_page", String(perPageNum));
+      if (searchQuery) params.set("query", searchQuery);
 
       const res = await fetch(`/api/qrcodes?${params.toString()}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
-      let d = data?.data ?? data;
-      let urlBaseToken: string | null = null;
 
-      if (d && typeof d === "object" && !Array.isArray(d) && d.items) {
-        urlBaseToken = d.url_base_token ?? null;
-        setUrlBaseToken(urlBaseToken);
-        d = d.items;
-        const pagination = d && (data?.data?.pagination ?? data?.pagination ?? null);
+      // API may return an envelope { data: { items: [...], pagination: {...}, url_base_token } }
+      // or a plain array/object. Normalize to itemsArray and optional baseToken.
+      let responseData = data?.data ?? data;
+      let baseToken: string | null = null;
+
+      if (responseData && typeof responseData === "object" && !Array.isArray(responseData) && responseData.items) {
+        baseToken = responseData.url_base_token ?? null;
+        setUrlBaseToken(baseToken);
+
+        // items are inside the envelope
+        const itemsArray = responseData.items;
+
+        // pagination info may be in data.data.pagination or data.pagination
+        const pagination = data?.data?.pagination ?? data?.pagination ?? null;
         if (pagination) {
-          setTotalPages(pagination.total_pages ?? Math.max(1, Math.ceil((pagination.total ?? 0) / (pagination.per_page ?? pp))));
-          setPerPage(pagination.per_page ?? pp);
-          setPage(pagination.page ?? p);
-        } else if (Array.isArray(d)) {
-          setTotalPages(Math.max(1, Math.ceil((data?.total ?? d.length) / pp)));
+          setTotalPages(
+            pagination.total_pages ?? Math.max(1, Math.ceil((pagination.total ?? 0) / (pagination.per_page ?? perPageNum)))
+          );
+          setPerPage(pagination.per_page ?? perPageNum);
+          setPage(pagination.page ?? pageNum);
+        } else if (Array.isArray(itemsArray)) {
+          setTotalPages(Math.max(1, Math.ceil((data?.total ?? itemsArray.length) / perPageNum)));
         }
+
+        // ensure itemsArray is actually an array before setting
+        if (!Array.isArray(itemsArray)) responseData = [];
+        else responseData = itemsArray;
       } else {
+        // No envelope, clear base token and ensure responseData is an array
         setUrlBaseToken(null);
       }
 
-      if (!Array.isArray(d)) d = [];
-      setItems(d as Qr[]);
+      if (!Array.isArray(responseData)) responseData = [];
+      setItems(responseData as Qr[]);
     } catch (err) {
       setError(String(err));
     } finally {
@@ -70,13 +87,13 @@ export default function useQRCodes(initial?: { page?: number; perPage?: number; 
   // initialize from URL once
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const p = parseInt(params.get("page") || String(initial?.page ?? "1"), 10) || 1;
-    const q = params.get("query") || initial?.query || "";
-    const pp = parseInt(params.get("per_page") || String(initial?.perPage ?? "20"), 10) || 20;
-    setPage(p);
-    setQuery(q);
-    setPerPage(pp);
-    loadItems({ page: p, perPage: pp, query: q });
+    const pageNum = parseInt(params.get("page") || String(initial?.page ?? "1"), 10) || 1;
+    const searchQuery = params.get("query") || initial?.query || "";
+    const perPageNum = parseInt(params.get("per_page") || String(initial?.perPage ?? "20"), 10) || 20;
+    setPage(pageNum);
+    setQuery(searchQuery);
+    setPerPage(perPageNum);
+    loadItems({ page: pageNum, perPage: perPageNum, query: searchQuery });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
