@@ -131,6 +131,6 @@
   @apply p-6 max-w-5xl mx-auto pt-8
 }
 
-button{
+button, a{
   cursor: pointer;
 }
