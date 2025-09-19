@@ -5,29 +5,15 @@ declare(strict_types=1);
 namespace App\Infrastructure\Persistence;
 
 use App\Application\Services\QrCode\FileStorageInterface;
+use App\Infrastructure\Utils\PublicDirectoryResolver;
 
 class LocalFileStorage implements FileStorageInterface
 {
     private string $publicDir;
 
-    public function __construct()
+    public function __construct(PublicDirectoryResolver $resolver)
     {
-        // resolve backend root relative to this file
-        $dir = __DIR__;
-        $backendRoot = null;
-        while ($dir && $dir !== dirname($dir)) {
-            if (basename($dir) === 'backend') {
-                $backendRoot = $dir;
-                break;
-            }
-            $dir = dirname($dir);
-        }
-
-        if ($backendRoot === null) {
-            $this->publicDir = dirname(__DIR__, 5) . '/public';
-        } else {
-            $this->publicDir = $backendRoot . '/public';
-        }
+        $this->publicDir = $resolver->getPublicDir();
     }
 
     public function save(string $relativePath, string $contents): void

@@ -12,19 +12,22 @@ use App\Application\Services\QrCode\QrWriterInterface;
 use App\Application\Services\QrCode\FileStorageInterface;
 use App\Application\Services\QrCode\QrColorParserInterface;
 use Endroid\QrCode\Color\Color;
+use App\Infrastructure\Utils\PublicDirectoryResolver;
 
 class ViewQrCodeAction extends QrCodeAction
 {
     private QrWriterInterface $qrWriter;
     private FileStorageInterface $fileStorage;
     private QrColorParserInterface $colorParser;
+    private PublicDirectoryResolver $publicResolver;
 
-    public function __construct(LoggerInterface $logger, QrCodeRepository $qrCodeRepository, SettingsInterface $settings, QrWriterInterface $qrWriter, FileStorageInterface $fileStorage, QrColorParserInterface $colorParser)
+    public function __construct(LoggerInterface $logger, QrCodeRepository $qrCodeRepository, SettingsInterface $settings, QrWriterInterface $qrWriter, FileStorageInterface $fileStorage, QrColorParserInterface $colorParser, PublicDirectoryResolver $publicResolver)
     {
         parent::__construct($logger, $qrCodeRepository, $settings);
         $this->qrWriter = $qrWriter;
         $this->fileStorage = $fileStorage;
         $this->colorParser = $colorParser;
+        $this->publicResolver = $publicResolver;
     }
 
     protected function action(): Response
@@ -47,21 +50,7 @@ class ViewQrCodeAction extends QrCodeAction
         $pngRel = '/tmp/qrcodes/' . $token . '.png';
         $svgRel = '/tmp/qrcodes/' . $token . '.svg';
 
-        // resolve public dir similar to LocalFileStorage
-        $dir = __DIR__;
-        $backendRoot = null;
-        while ($dir && $dir !== dirname($dir)) {
-            if (basename($dir) === 'backend') {
-                $backendRoot = $dir;
-                break;
-            }
-            $dir = dirname($dir);
-        }
-        if ($backendRoot === null) {
-            $publicDir = dirname(__DIR__, 5) . '/public';
-        } else {
-            $publicDir = $backendRoot . '/public';
-        }
+        $publicDir = $this->publicResolver->getPublicDir();
 
         $pngFull = $publicDir . $pngRel;
         $svgFull = $publicDir . $svgRel;

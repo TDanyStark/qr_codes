@@ -23,6 +23,7 @@ use App\Application\Services\QrCode\QrColorParserInterface;
 use App\Application\Services\QrCode\QrColorParser;
 use App\Infrastructure\Qr\EndroidQrWriter;
 use App\Infrastructure\Persistence\LocalFileStorage;
+use App\Infrastructure\Utils\PublicDirectoryResolver;
 use App\Application\Services\GeoIp\GeoIpServiceInterface;
 use App\Infrastructure\GeoIp\IpDataGeoIpService;
 
@@ -76,7 +77,8 @@ return function (ContainerBuilder $containerBuilder) {
         AdminRoleMiddleware::class => \DI\autowire(AdminRoleMiddleware::class),
         QrCodeCreator::class => \DI\autowire(QrCodeCreator::class),
         QrWriterInterface::class => \DI\autowire(EndroidQrWriter::class),
-        FileStorageInterface::class => \DI\autowire(LocalFileStorage::class),
+    FileStorageInterface::class => \DI\autowire(LocalFileStorage::class),
+    PublicDirectoryResolver::class => \DI\autowire(PublicDirectoryResolver::class),
         QrColorParserInterface::class => \DI\autowire(QrColorParser::class),
         GeoIpServiceInterface::class => \DI\autowire(IpDataGeoIpService::class),
     ]);
