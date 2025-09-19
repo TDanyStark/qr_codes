@@ -62,7 +62,7 @@ class PdoQrCodeRepository implements QrCodeRepository
 
         $sql = 'SELECT q.id, q.token, q.owner_user_id, q.target_url, q.name, q.created_at, u.name AS owner_name, u.email AS owner_email FROM qrcodes q LEFT JOIN users u ON q.owner_user_id = u.id'
             . $whereSql
-            . ' ORDER BY q.id'
+            . ' ORDER BY q.id DESC'
             . ' LIMIT :limit OFFSET :offset';
 
         $stmt = $this->pdo->prepare($sql);
@@ -106,7 +106,7 @@ class PdoQrCodeRepository implements QrCodeRepository
      */
     public function findAllForUser(int $ownerUserId): array
     {
-    $stmt = $this->pdo->prepare('SELECT q.id, q.token, q.owner_user_id, q.target_url, q.name, q.created_at, u.name AS owner_name, u.email AS owner_email FROM qrcodes q LEFT JOIN users u ON q.owner_user_id = u.id WHERE owner_user_id = :owner ORDER BY q.id');
+    $stmt = $this->pdo->prepare('SELECT q.id, q.token, q.owner_user_id, q.target_url, q.name, q.created_at, u.name AS owner_name, u.email AS owner_email FROM qrcodes q LEFT JOIN users u ON q.owner_user_id = u.id WHERE owner_user_id = :owner ORDER BY q.id DESC');
         $stmt->execute(['owner' => $ownerUserId]);
         $rows = $stmt->fetchAll();
 
@@ -137,7 +137,7 @@ class PdoQrCodeRepository implements QrCodeRepository
      */
     public function findAll(): array
     {
-    $stmt = $this->pdo->query('SELECT q.id, q.token, q.owner_user_id, q.target_url, q.name, q.created_at, u.name AS owner_name, u.email AS owner_email FROM qrcodes q LEFT JOIN users u ON q.owner_user_id = u.id ORDER BY q.id');
+    $stmt = $this->pdo->query('SELECT q.id, q.token, q.owner_user_id, q.target_url, q.name, q.created_at, u.name AS owner_name, u.email AS owner_email FROM qrcodes q LEFT JOIN users u ON q.owner_user_id = u.id ORDER BY q.id DESC');
         $rows = $stmt->fetchAll();
 
         $items = [];
