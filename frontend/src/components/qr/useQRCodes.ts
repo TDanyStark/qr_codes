@@ -96,6 +96,14 @@ export default function useQRCodes(initial?: { page?: number; perPage?: number; 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]);
 
+  const updatePerPage = (n: number) => {
+    // set per page and reset to first page, sync URL and reload immediately
+    setPerPage(n);
+    setPage(1);
+    pushUrl(1, query, n);
+    loadItems({ page: 1, perPage: n, query });
+  };
+
   return {
     items,
     urlBaseToken,
@@ -109,5 +117,6 @@ export default function useQRCodes(initial?: { page?: number; perPage?: number; 
     setPerPage,
     setQuery,
     loadItems,
+    updatePerPage,
   } as const;
 }

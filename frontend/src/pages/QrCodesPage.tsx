@@ -18,9 +18,9 @@ export default function QrCodesPage() {
     totalPages,
     query,
     setPage,
-    setPerPage,
     setQuery,
     loadItems,
+    updatePerPage,
   } = useQRCodes();
 
   const debounced = useDebouncedCallback((val: string) => {
@@ -53,10 +53,7 @@ export default function QrCodesPage() {
             <label className="text-sm text-muted-foreground">Mostrar</label>
             <Select value={String(perPage)} onValueChange={(v) => {
               const n = parseInt(v, 10) || 20;
-              setPerPage(n);
-              setPage(1);
-              // ensure URL reflects the newly selected perPage value (avoid stale closure)
-              loadItems({ page: 1, perPage: n, query });
+              updatePerPage(n);
             }}>
               <SelectTrigger size="sm">
                 <SelectValue />
