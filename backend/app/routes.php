@@ -17,6 +17,7 @@ use \App\Application\Middleware\AdminRoleMiddleware;
 use \App\Application\Actions\QrCode\ListQrCodesAction;
 use \App\Application\Actions\QrCode\CreateQrCodeAction;
 use \App\Application\Actions\QrCode\RedirectQrCodeAction;
+use \App\Application\Actions\QrCode\ViewQrCodeAction;
 
 return function (App $app) {
     $app->options('/{routes:.*}', function (Request $request, Response $response) {
@@ -41,6 +42,7 @@ return function (App $app) {
         // QR Codes endpoints
         $group->group('/qrcodes', function (Group $group) {
             $group->get('', ListQrCodesAction::class);
+            $group->get('/{id}', ViewQrCodeAction::class);
             $group->post('', CreateQrCodeAction::class);
         })->add(JwtAuthMiddleware::class);
 

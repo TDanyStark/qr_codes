@@ -5,6 +5,8 @@ import { Toaster } from "sonner";
 import CreateQrCode from "@/components/CreateQrCode";
 import QrCodeList from "@/components/qr/QrCodeList";
 import useQRCodes from "@/components/qr/useQRCodes";
+import { useState } from "react";
+import EditQrCode from "@/components/qr/EditQrCode";
 import { useNavigate } from "react-router-dom";
 
 export default function QrCodesPage() {
@@ -25,6 +27,7 @@ export default function QrCodesPage() {
   } = useQRCodes({ perPage: 10 });
 
   const navigate = useNavigate();
+  const [editing, setEditing] = useState<number | null>(null);
 
   const debounced = useDebouncedCallback((val: string) => {
     updateQuery(val);
@@ -78,9 +81,18 @@ export default function QrCodesPage() {
           totalPages={totalPages}
           urlBaseToken={urlBaseToken}
           onPageChange={(p: number) => setPage(p)}
-          onEdit={(id) => console.log("edit", id)}
+          onEdit={(id) => setEditing(id)}
           onStats={(id) => {
             navigate(`/qr_codes/${id}/stats`);
+          }}
+        />
+        <EditQrCode
+          qr={items.find((it) => it.id === editing) ?? null}
+          onClose={() => setEditing(null)}
+          onUpdated={() => {
+            // reload list after regeneration
+            loadItems();
+            setEditing(null);
           }}
         />
       </div>

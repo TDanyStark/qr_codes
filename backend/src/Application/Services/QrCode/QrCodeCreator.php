@@ -13,12 +13,14 @@ class QrCodeCreator
     private QrCodeRepository $qrCodeRepository;
     private QrWriterInterface $qrWriter;
     private FileStorageInterface $fileStorage;
+    private QrColorParserInterface $colorParser;
 
-    public function __construct(QrCodeRepository $qrCodeRepository, QrWriterInterface $qrWriter, FileStorageInterface $fileStorage)
+    public function __construct(QrCodeRepository $qrCodeRepository, QrWriterInterface $qrWriter, FileStorageInterface $fileStorage, QrColorParserInterface $colorParser)
     {
         $this->qrCodeRepository = $qrCodeRepository;
         $this->qrWriter = $qrWriter;
         $this->fileStorage = $fileStorage;
+        $this->colorParser = $colorParser;
     }
 
     /**
@@ -44,8 +46,8 @@ class QrCodeCreator
         $domainQr = new DomainQrCode(null, $token, $userId, $targetUrl, $name);
         $created = $this->qrCodeRepository->create($domainQr);
 
-        $fgColor = $this->parseHexColor($foreground);
-        $bgColor = $this->parseHexColor($background);
+    $fgColor = $this->colorParser->parseHexColor($foreground);
+    $bgColor = $this->colorParser->parseHexColor($background);
 
         // build redirect URL
         $baseUrl = getenv('URL_BASE') ?: '';
@@ -70,19 +72,5 @@ class QrCodeCreator
         return ['qr' => $created, 'links' => $links];
     }
 
-    private function parseHexColor(string $hex): Color
-    {
-        $hex = ltrim($hex, '#');
-        if (strlen($hex) === 3) {
-            $r = hexdec(str_repeat($hex[0], 2));
-            $g = hexdec(str_repeat($hex[1], 2));
-            $b = hexdec(str_repeat($hex[2], 2));
-        } else {
-            $r = hexdec(substr($hex, 0, 2));
-            $g = hexdec(substr($hex, 2, 2));
-            $b = hexdec(substr($hex, 4, 2));
-        }
-
-        return new Color($r, $g, $b);
-    }
+    // parseHexColor removed — use QrColorParserInterface
 }
