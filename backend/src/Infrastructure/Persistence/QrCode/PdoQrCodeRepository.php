@@ -44,8 +44,14 @@ class PdoQrCodeRepository implements QrCodeRepository
 
         if ($query !== null && $query !== '') {
             // search across token, name, target_url, owner name and owner email
-            $where[] = '(q.token LIKE :q OR q.name LIKE :q OR q.target_url LIKE :q OR u.name LIKE :q OR u.email LIKE :q)';
-            $params['q'] = '%' . $query . '%';
+            // use unique placeholders for each occurrence to avoid driver issues with repeated named params
+            $where[] = '(q.token LIKE :q_token OR q.name LIKE :q_name OR q.target_url LIKE :q_target OR u.name LIKE :q_uname OR u.email LIKE :q_uemail)';
+            $like = '%' . $query . '%';
+            $params['q_token'] = $like;
+            $params['q_name'] = $like;
+            $params['q_target'] = $like;
+            $params['q_uname'] = $like;
+            $params['q_uemail'] = $like;
         }
 
         $whereSql = '';
