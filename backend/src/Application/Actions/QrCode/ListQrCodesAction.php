@@ -32,20 +32,45 @@ class ListQrCodesAction extends QrCodeAction
             $isAdmin = true;
         }
 
-        if ($isAdmin) {
-            $items = $this->qrCodeRepository->findAll();
-        } else {
-            $items = $this->qrCodeRepository->findAllForUser($userId);
+        // read pagination and query params from GET
+        $params = $this->request->getQueryParams();
+
+        $page = isset($params['page']) ? (int)$params['page'] : 1;
+        if ($page < 1) {
+            $page = 1;
         }
+
+        $query = isset($params['query']) ? trim((string)$params['query']) : null;
+
+        // per-page from settings, fallback to environment or default 20
+        $perPage = (int)($this->settings->get('pagination.per_page') ?? getenv('PER_PAGE') ?? getenv('PERPAGE') ?? 20);
+        if ($perPage < 1) {
+            $perPage = 20;
+        }
+
+        // fetch paginated results
+        if ($isAdmin) {
+            $result = $this->qrCodeRepository->list($page, $perPage, $query, null);
+        } else {
+            $result = $this->qrCodeRepository->list($page, $perPage, $query, $userId);
+        }
+
+        $items = $result['items'] ?? [];
+        $total = $result['total'] ?? 0;
 
         // build base url from env and ensure no trailing slash
         $baseUrl = getenv('URL_BASE') ?: '';
         $baseUrl = rtrim($baseUrl, '/');
-
         $urlBaseToken = ($baseUrl !== '' ? $baseUrl : '') . '/r/';
 
         $response = [
             'items' => $items,
+            'pagination' => [
+                'page' => $page,
+                'per_page' => $perPage,
+                'total' => $total,
+                'total_pages' => (int)ceil($total / $perPage),
+            ],
             'url_base_token' => $urlBaseToken,
         ];
 

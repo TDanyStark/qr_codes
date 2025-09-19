@@ -9,14 +9,15 @@ use App\Application\Services\QrCode\QrCodeCreator;
 use Psr\Http\Message\ResponseInterface as Response;
 use \App\Domain\QrCode\QrCodeRepository;
 use \Psr\Log\LoggerInterface;
+use App\Application\Settings\SettingsInterface;
 
 class CreateQrCodeAction extends QrCodeAction
 {
     private QrCodeCreator $creator;
 
-    public function __construct(LoggerInterface $logger, QrCodeRepository $qrCodeRepository, QrCodeCreator $creator)
+    public function __construct(LoggerInterface $logger, QrCodeRepository $qrCodeRepository, QrCodeCreator $creator, SettingsInterface $settings)
     {
-        parent::__construct($logger, $qrCodeRepository);
+        parent::__construct($logger, $qrCodeRepository, $settings);
         $this->creator = $creator;
     }
 

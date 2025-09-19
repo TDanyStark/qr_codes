@@ -25,6 +25,10 @@ return function (ContainerBuilder $containerBuilder) {
                     'secret' => getenv('JWT_SECRET') ?: 'change_this_secret',
                     'expiry_days' => 15,
                 ],
+                // pagination defaults (can be overridden by environment-specific settings)
+                'pagination' => [
+                    'per_page' => 20,
+                ],
             ]);
         }
     ]);

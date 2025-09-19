@@ -22,6 +22,86 @@ class PdoQrCodeRepository implements QrCodeRepository
     }
 
     /**
+     * Paginated list with optional search and owner restriction
+     *
+     * @param int $page
+     * @param int $perPage
+     * @param string|null $query
+     * @param int|null $ownerUserId
+     * @return array{items: QrCode[], total: int}
+     */
+    public function list(int $page, int $perPage, ?string $query = null, ?int $ownerUserId = null): array
+    {
+        $offset = max(0, ($page - 1) * $perPage);
+
+        $where = [];
+        $params = [];
+
+        if ($ownerUserId !== null) {
+            $where[] = 'q.owner_user_id = :owner';
+            $params['owner'] = $ownerUserId;
+        }
+
+        if ($query !== null && $query !== '') {
+            // search across token, name, target_url, owner name and owner email
+            $where[] = '(q.token LIKE :q OR q.name LIKE :q OR q.target_url LIKE :q OR u.name LIKE :q OR u.email LIKE :q)';
+            $params['q'] = '%' . $query . '%';
+        }
+
+        $whereSql = '';
+        if (!empty($where)) {
+            $whereSql = ' WHERE ' . implode(' AND ', $where);
+        }
+
+        // count total
+        $countSql = 'SELECT COUNT(*) as cnt FROM qrcodes q LEFT JOIN users u ON q.owner_user_id = u.id' . $whereSql;
+        $countStmt = $this->pdo->prepare($countSql);
+        $countStmt->execute($params);
+        $countRow = $countStmt->fetch();
+        $total = $countRow ? (int)$countRow['cnt'] : 0;
+
+        $sql = 'SELECT q.id, q.token, q.owner_user_id, q.target_url, q.name, q.created_at, u.name AS owner_name, u.email AS owner_email FROM qrcodes q LEFT JOIN users u ON q.owner_user_id = u.id'
+            . $whereSql
+            . ' ORDER BY q.id'
+            . ' LIMIT :limit OFFSET :offset';
+
+        $stmt = $this->pdo->prepare($sql);
+
+        // bind params (except limit/offset)
+        foreach ($params as $k => $v) {
+            $stmt->bindValue(is_int($k) ? $k + 1 : ':' . $k, $v);
+        }
+
+        // bind limit/offset as integers
+        $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+
+        $stmt->execute();
+        $rows = $stmt->fetchAll();
+
+        $items = [];
+        foreach ($rows as $row) {
+            $createdAt = null;
+            if (!empty($row['created_at'])) {
+                $createdAt = new \DateTimeImmutable($row['created_at']);
+            }
+
+            $items[] = new QrCode(
+                (int)$row['id'],
+                $row['token'] ?? '',
+                (int)$row['owner_user_id'],
+                $row['target_url'] ?? '',
+                $row['name'] ?? null,
+                $createdAt,
+                $row['owner_name'] ?? null,
+                $row['owner_email'] ?? null
+            );
+        }
+
+        return ['items' => $items, 'total' => $total];
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function findAllForUser(int $ownerUserId): array

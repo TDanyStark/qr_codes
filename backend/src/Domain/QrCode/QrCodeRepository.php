@@ -18,6 +18,17 @@ interface QrCodeRepository
     public function findAll(): array;
 
     /**
+     * List qrcodes with pagination and optional search query.
+     *
+     * @param int $page 1-based page number
+     * @param int $perPage items per page
+     * @param string|null $query optional search string to match token, name, target_url or owner name/email
+     * @param int|null $ownerUserId if provided, restrict results to this owner (non-admin)
+     * @return array{items: QrCode[], total: int}
+     */
+    public function list(int $page, int $perPage, ?string $query = null, ?int $ownerUserId = null): array;
+
+    /**
      * @param int $id
      * @return QrCode
      */
