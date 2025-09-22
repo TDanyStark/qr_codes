@@ -46,7 +46,7 @@ class QrCodeCreator
 
         $token = bin2hex(random_bytes(16));
 
-        $domainQr = new DomainQrCode(null, $token, $userId, $targetUrl, $name);
+        $domainQr = new DomainQrCode(null, $token, $userId, $targetUrl, $name, $foreground, $background);
         $created = $this->qrCodeRepository->create($domainQr);
 
         $fgColor = $this->colorParser->parseHexColor($foreground);

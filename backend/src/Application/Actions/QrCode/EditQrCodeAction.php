@@ -71,6 +71,8 @@ class EditQrCodeAction extends QrCodeAction
 
         $newTarget = $target ?? $qr->getTargetUrl();
         $newName = $name ?? $qr->getName();
+        $newForeground = $foreground ?? $qr->getForeground();
+        $newBackground = $background ?? $qr->getBackground();
 
         // attempt to persist update via repository if method exists
         $newQr = new QrCode(
@@ -79,6 +81,8 @@ class EditQrCodeAction extends QrCodeAction
             $qr->getOwnerUserId(),
             $newTarget,
             $newName,
+            $newForeground,
+            $newBackground,
             $qr->getCreatedAt(),
             $qr->getOwnerName(),
             $qr->getOwnerEmail()
@@ -89,7 +93,7 @@ class EditQrCodeAction extends QrCodeAction
             // log and continue
             $this->logger->error('Failed to update QR record: ' . $e->getMessage());
         }
-        
+
 
         // Always regenerate images on edit. Parse provided colors or fall back to defaults.
         $fg = $foreground ?? '#000000';
