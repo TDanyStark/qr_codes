@@ -63,8 +63,8 @@ export function useEditQrCode({
       setFormData({
         target_url: qr.target_url ?? "",
         name: qr.name ?? "",
-        foreground: "#000000",
-        background: "#ffffff",
+        foreground: qr.foreground ?? "#000000",
+        background: qr.background ?? "#ffffff",
       });
       // Try to fetch QR details (including links) from backend so we show exact preview
       (async () => {

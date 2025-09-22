@@ -10,6 +10,10 @@ export type Qr = {
   owner_user_id?: number;
   owner_name?: string | null;
   owner_email?: string | null;
+  foreground?: string | null;
+  background?: string | null;
+  created_at: string;
+  updated_at: string;
 };
 
 type Pagination = {
