@@ -38,9 +38,7 @@ class ListQrCodesAction extends QrCodeAction
 
         // check role: admin can see all
         $isAdmin = false;
-        if (is_array($jwt) && isset($jwt['rol']) && $jwt['rol'] === 'admin') {
-            $isAdmin = true;
-        } elseif (is_object($jwt) && isset($jwt->rol) && $jwt->rol === 'admin') {
+        if (is_object($jwt) && isset($jwt->rol) && $jwt->rol === 'admin') {
             $isAdmin = true;
         }
 

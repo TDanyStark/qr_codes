@@ -57,10 +57,7 @@ class EditQrCodeAction extends QrCodeAction
         $jwt = $this->request->getAttribute('jwt');
         $userId = null;
         $isAdmin = false;
-        if (is_array($jwt) && isset($jwt['sub'])) {
-            $userId = (int)$jwt['sub'];
-            if (isset($jwt['rol']) && $jwt['rol'] === 'admin') $isAdmin = true;
-        } elseif (is_object($jwt) && isset($jwt->sub)) {
+        if (is_object($jwt) && isset($jwt->sub)) {
             $userId = (int)$jwt->sub;
             if (isset($jwt->rol) && $jwt->rol === 'admin') $isAdmin = true;
         }
@@ -74,7 +71,6 @@ class EditQrCodeAction extends QrCodeAction
         $newForeground = $foreground ?? $qr->getForeground();
         $newBackground = $background ?? $qr->getBackground();
 
-        // attempt to persist update via repository if method exists
         $newQr = new QrCode(
             $qr->getId(),
             $qr->getToken(),
