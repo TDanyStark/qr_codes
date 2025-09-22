@@ -59,4 +59,43 @@ class PdoScanRepository implements ScanRepository
         }
         return $items;
     }
+
+    public function dailyCounts(int $qrCodeId, int $days = 30): array
+    {
+        $stmt = $this->pdo->prepare('SELECT DATE(scanned_at) as day, COUNT(*) as cnt FROM scans WHERE qrcode_id = :id AND scanned_at >= DATE_SUB(CURRENT_DATE(), INTERVAL :days DAY) GROUP BY DATE(scanned_at) ORDER BY day ASC');
+        $stmt->bindValue(':id', $qrCodeId, PDO::PARAM_INT);
+        $stmt->bindValue(':days', $days, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $out = [];
+        foreach ($rows as $row) {
+            $out[] = ['day' => $row['day'], 'cnt' => (int)$row['cnt']];
+        }
+        return $out;
+    }
+
+    public function countryBreakdown(int $qrCodeId, int $limit = 10): array
+    {
+        $stmt = $this->pdo->prepare('SELECT country, COUNT(*) as cnt FROM scans WHERE qrcode_id = :id GROUP BY country ORDER BY cnt DESC LIMIT :limit');
+        $stmt->bindValue(':id', $qrCodeId, PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $out = [];
+        foreach ($rows as $row) {
+            $out[] = ['country' => $row['country'] ?? null, 'cnt' => (int)$row['cnt']];
+        }
+        return $out;
+    }
+
+    public function totalCount(int $qrCodeId): int
+    {
+        $stmt = $this->pdo->prepare('SELECT COUNT(*) as total FROM scans WHERE qrcode_id = :id');
+        $stmt->bindValue(':id', $qrCodeId, PDO::PARAM_INT);
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: ['total' => 0];
+        return (int)$row['total'];
+    }
 }
