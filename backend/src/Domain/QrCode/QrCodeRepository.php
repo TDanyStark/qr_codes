@@ -47,4 +47,11 @@ interface QrCodeRepository
      * @return QrCode
      */
     public function create(QrCode $qrCode): QrCode;
+
+    /**
+     * Update an existing QR code record and return the updated entity
+     * @param QrCode $qrCode
+     * @return QrCode
+     */
+    public function update(QrCode $qrCode): QrCode;
 }

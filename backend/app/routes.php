@@ -18,6 +18,7 @@ use \App\Application\Actions\QrCode\ListQrCodesAction;
 use \App\Application\Actions\QrCode\CreateQrCodeAction;
 use \App\Application\Actions\QrCode\RedirectQrCodeAction;
 use \App\Application\Actions\QrCode\ViewQrCodeAction;
+use App\Application\Actions\QrCode\EditQrCodeAction;
 
 return function (App $app) {
     $app->options('/{routes:.*}', function (Request $request, Response $response) {
@@ -43,6 +44,7 @@ return function (App $app) {
         $group->group('/qrcodes', function (Group $group) {
             $group->get('', ListQrCodesAction::class);
             $group->get('/{id}', ViewQrCodeAction::class);
+            $group->post('/{id}/edit', EditQrCodeAction::class);
             $group->post('', CreateQrCodeAction::class);
         })->add(JwtAuthMiddleware::class);
 

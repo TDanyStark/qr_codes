@@ -265,4 +265,20 @@ class PdoQrCodeRepository implements QrCodeRepository
             $ownerEmail
         );
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function update(QrCode $qrCode): QrCode
+    {
+        $stmt = $this->pdo->prepare('UPDATE qrcodes SET target_url = :target_url, name = :name WHERE id = :id');
+        $stmt->execute([
+            'target_url' => $qrCode->getTargetUrl(),
+            'name' => $qrCode->getName(),
+            'id' => $qrCode->getId(),
+        ]);
+
+        // return fresh from DB
+        return $this->findOfId((int)$qrCode->getId());
+    }
 }

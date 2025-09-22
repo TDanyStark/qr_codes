@@ -44,7 +44,6 @@ const asLinks = (resData: unknown): QrLinks => {
 
 export function useEditQrCode({
   qr,
-  onUpdated,
 }: UseEditQrCodeParams): UseEditQrCodeReturn {
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<QrFormData>({
@@ -189,10 +188,16 @@ export function useEditQrCode({
       }
 
       const extracted = asLinks(res?.data);
+      const cb = Date.now();
+      const src = extracted.png
+        ? `${extracted.png}?cb=${cb}`
+        : extracted.svg
+        ? `${extracted.svg}?cb=${cb}`
+        : null;
+      // keep original links for download; use cache-busted URL only for preview
       setLinks(extracted);
-      setPreviewUrl(extracted.png || extracted.svg || null);
+      setPreviewUrl(src);
       toast.success("QR actualizado");
-      onUpdated?.();
     } catch (err: unknown) {
       let message = "Error al actualizar QR";
       if (err && typeof err === "object" && "response" in err) {
