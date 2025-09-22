@@ -1,22 +1,15 @@
-const STORAGE_KEY = 'login_pending'
+import useAuthStore from '@/store/useAuthStore'
 
 export function setPendingEmail(email: string) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ email }))
+  useAuthStore.getState().setPendingEmail(email)
 }
 
 export function getPendingEmail(): string | null {
-  const raw = localStorage.getItem(STORAGE_KEY)
-  if (!raw) return null
-  try {
-    const parsed = JSON.parse(raw) as { email: string }
-    return parsed.email
-  } catch {
-    return null
-  }
+  return useAuthStore.getState().pendingEmail
 }
 
 export function clearPending() {
-  localStorage.removeItem(STORAGE_KEY)
+  useAuthStore.getState().clearPending()
 }
 
 const pendingEmail = { setPendingEmail, getPendingEmail, clearPending }
