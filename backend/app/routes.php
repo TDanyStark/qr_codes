@@ -20,6 +20,7 @@ use \App\Application\Actions\QrCode\RedirectQrCodeAction;
 use \App\Application\Actions\QrCode\ViewQrCodeAction;
 use App\Application\Actions\QrCode\EditQrCodeAction;
 use \App\Application\Actions\QrCode\StatsQrCodeAction;
+use \App\Application\Actions\QrCode\StatsQrCodeCsvAction;
 
 return function (App $app) {
     $app->options('/{routes:.*}', function (Request $request, Response $response) {
@@ -46,6 +47,7 @@ return function (App $app) {
             $group->get('', ListQrCodesAction::class);
             $group->get('/{id}', ViewQrCodeAction::class);
             $group->get('/{id}/stats', StatsQrCodeAction::class);
+            $group->get('/{id}/stats/csv', StatsQrCodeCsvAction::class);
             $group->post('/{id}/edit', EditQrCodeAction::class);
             $group->post('', CreateQrCodeAction::class);
         })->add(JwtAuthMiddleware::class);

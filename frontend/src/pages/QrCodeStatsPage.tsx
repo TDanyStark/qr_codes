@@ -25,7 +25,15 @@ import {
   Legend,
 } from "recharts";
 
-const COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff7f50", "#a4de6c", "#d0ed57", "#8dd1e1"];
+const COLORS = [
+  "#8884d8",
+  "#82ca9d",
+  "#ffc658",
+  "#ff7f50",
+  "#a4de6c",
+  "#d0ed57",
+  "#8dd1e1",
+];
 
 type DailyItem = {
   day: string; // YYYY-MM-DD
@@ -54,7 +62,8 @@ function formatError(e: unknown): string {
     const obj = e as Record<string, unknown>;
     if (obj.error) return formatError(obj.error);
     if (obj.message) return String(obj.message);
-    if (obj.type && obj.description) return `${String(obj.type)}: ${String(obj.description)}`;
+    if (obj.type && obj.description)
+      return `${String(obj.type)}: ${String(obj.description)}`;
     return JSON.stringify(obj);
   } catch {
     return String(e);
@@ -69,6 +78,36 @@ export default function QrCodeStatsPage() {
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<StatsResponse | null>(null);
 
+  async function handleExportCsv() {
+    if (!id) return;
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get(`/api/qrcodes/${id}/stats/csv`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+
+      // backend returns { downloadUrl: '/api/qrcodes/{id}/stats/csv/download/<filename>' }
+      const downloadUrl =
+        res?.data?.data?.downloadUrl ?? res?.data?.downloadUrl ?? null;
+      if (!downloadUrl) {
+        alert("No download URL returned");
+        return;
+      }
+
+      // navigate to downloadUrl to trigger browser download
+      // ensure absolute or root-relative URL is used
+      if (downloadUrl.startsWith("/")) {
+        window.location.assign(downloadUrl);
+      } else {
+        // fallback: open as returned
+        window.location.assign(downloadUrl);
+      }
+    } catch (e) {
+      console.error("CSV export failed", e);
+      alert("Error exporting CSV");
+    }
+  }
+
   // ...existing code...
 
   useEffect(() => {
@@ -77,13 +116,16 @@ export default function QrCodeStatsPage() {
     setError(null);
     const token = localStorage.getItem("token");
     axios
-      .get(`/api/qrcodes/${id}/stats`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+      .get(`/api/qrcodes/${id}/stats`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      })
       .then((res) => {
         // The backend wraps payload as { statusCode: ..., data: { ... } }
         const payload = res?.data?.data ?? res?.data ?? null;
         if (payload) {
           // ensure total is a number
-          if (payload.total !== undefined) payload.total = Number(payload.total);
+          if (payload.total !== undefined)
+            payload.total = Number(payload.total);
           setData(payload);
         } else {
           setData(null);
@@ -106,13 +148,23 @@ export default function QrCodeStatsPage() {
   }, [data]);
 
   const countrySeries = useMemo(() => {
-    if (!data?.countries) return [] as { name: string; value: number; color: string }[];
-    return data.countries.map((c, i) => ({ name: c.country || "Unknown", value: Number(c.cnt), color: COLORS[i % COLORS.length] }));
+    if (!data?.countries)
+      return [] as { name: string; value: number; color: string }[];
+    return data.countries.map((c, i) => ({
+      name: c.country || "Unknown",
+      value: Number(c.cnt),
+      color: COLORS[i % COLORS.length],
+    }));
   }, [data]);
 
   const citySeries = useMemo(() => {
-    if (!data?.cities) return [] as { name: string; value: number; color: string }[];
-    return data.cities.map((c, i) => ({ name: c.city || "Unknown", value: Number(c.cnt), color: COLORS[i % COLORS.length] }));
+    if (!data?.cities)
+      return [] as { name: string; value: number; color: string }[];
+    return data.cities.map((c, i) => ({
+      name: c.city || "Unknown",
+      value: Number(c.cnt),
+      color: COLORS[i % COLORS.length],
+    }));
   }, [data]);
 
   return (
@@ -148,6 +200,12 @@ export default function QrCodeStatsPage() {
 
       <h1 className="text-3xl font-semibold mb-4">Stats for QR {id}</h1>
 
+      <div className="mb-4">
+        <Button onClick={handleExportCsv} size="sm" variant="outline">
+          Exportar CSV
+        </Button>
+      </div>
+
       {loading && <div>Cargando métricas...</div>}
       {error && <div className="text-red-400">Error: {error}</div>}
 
@@ -166,7 +224,13 @@ export default function QrCodeStatsPage() {
                     <XAxis dataKey="day" tick={{ fill: "#cbd5e1" }} />
                     <YAxis tick={{ fill: "#cbd5e1" }} />
                     <Tooltip />
-                    <Line type="monotone" dataKey="count" stroke="#82ca9d" strokeWidth={2} dot={false} />
+                    <Line
+                      type="monotone"
+                      dataKey="count"
+                      stroke="#82ca9d"
+                      strokeWidth={2}
+                      dot={false}
+                    />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -183,10 +247,25 @@ export default function QrCodeStatsPage() {
                 <div style={{ width: "100%", height: 300 }}>
                   <ResponsiveContainer>
                     <PieChart>
-                      <Pie data={countrySeries} dataKey="value" nameKey="name" outerRadius={90} fill="#8884d8">
-                        {countrySeries.map((entry: { name: string; value: number; color: string }, index: number) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
+                      <Pie
+                        data={countrySeries}
+                        dataKey="value"
+                        nameKey="name"
+                        outerRadius={90}
+                        fill="#8884d8"
+                      >
+                        {countrySeries.map(
+                          (
+                            entry: {
+                              name: string;
+                              value: number;
+                              color: string;
+                            },
+                            index: number
+                          ) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          )
+                        )}
                       </Pie>
                       <Legend />
                       <Tooltip />
@@ -196,7 +275,9 @@ export default function QrCodeStatsPage() {
               )}
 
               <div className="mt-4">
-                <div className="text-sm text-muted-foreground">Total scans: <strong>{data.total}</strong></div>
+                <div className="text-sm text-muted-foreground">
+                  Total scans: <strong>{data.total}</strong>
+                </div>
               </div>
             </div>
 
@@ -208,10 +289,28 @@ export default function QrCodeStatsPage() {
                 <div style={{ width: "100%", height: 300 }}>
                   <ResponsiveContainer>
                     <PieChart>
-                      <Pie data={citySeries} dataKey="value" nameKey="name" outerRadius={90} fill="#82ca9d">
-                        {citySeries.map((entry: { name: string; value: number; color: string }, index: number) => (
-                          <Cell key={`cell-city-${index}`} fill={entry.color} />
-                        ))}
+                      <Pie
+                        data={citySeries}
+                        dataKey="value"
+                        nameKey="name"
+                        outerRadius={90}
+                        fill="#82ca9d"
+                      >
+                        {citySeries.map(
+                          (
+                            entry: {
+                              name: string;
+                              value: number;
+                              color: string;
+                            },
+                            index: number
+                          ) => (
+                            <Cell
+                              key={`cell-city-${index}`}
+                              fill={entry.color}
+                            />
+                          )
+                        )}
                       </Pie>
                       <Legend />
                       <Tooltip />
