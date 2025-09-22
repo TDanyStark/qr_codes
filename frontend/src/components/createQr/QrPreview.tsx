@@ -44,7 +44,7 @@ export const QrPreview = memo(function QrPreview({ links, previewUrl }: QrPrevie
           <img
             src={previewUrl}
             alt="QR preview"
-            className="w-full h-auto object-contain aspect-square"
+            className="w-full h-auto object-contain aspect-square rounded"
           />
         )}
       </div>

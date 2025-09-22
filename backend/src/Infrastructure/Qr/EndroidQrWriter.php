@@ -19,8 +19,8 @@ class EndroidQrWriter implements QrWriterInterface
 
         $qrForPng = new EndroidQrCode(
             data: $data,
-            size: 1000,
-            margin: 10,
+            size: 950,
+            margin: 25,
             foregroundColor: $foreground,
             backgroundColor: $background
         );
@@ -28,8 +28,8 @@ class EndroidQrWriter implements QrWriterInterface
 
         $qrForSvg = new EndroidQrCode(
             data: $data,
-            size: 1000,
-            margin: 10,
+            size: 950,
+            margin: 25,
             foregroundColor: $foreground,
             backgroundColor: $background
         );

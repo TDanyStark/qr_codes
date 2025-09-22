@@ -23,7 +23,7 @@ return function (ContainerBuilder $containerBuilder) {
                 ],
                 'jwt' => [
                     'secret' => getenv('JWT_SECRET') ?: 'change_this_secret',
-                    'expiry_days' => 15,
+                    'expiry_days' => 30,
                 ],
                 // pagination defaults (can be overridden by environment-specific settings)
                 'pagination' => [
