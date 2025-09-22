@@ -92,7 +92,6 @@ export default function QrCodesPage() {
           onUpdated={() => {
             // reload list after regeneration
             loadItems();
-            setEditing(null);
           }}
         />
       </div>

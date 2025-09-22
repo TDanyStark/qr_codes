@@ -44,6 +44,7 @@ const asLinks = (resData: unknown): QrLinks => {
 
 export function useEditQrCode({
   qr,
+  onUpdated,
 }: UseEditQrCodeParams): UseEditQrCodeReturn {
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<QrFormData>({
@@ -212,6 +213,12 @@ export function useEditQrCode({
       // keep original links for download; use cache-busted URL only for preview
       setLinks(extracted);
       setPreviewUrl(src);
+      // notify parent that qr was updated so list/table can refresh
+      try {
+        onUpdated?.();
+      } catch {
+        // swallow any error from callback to not break UX
+      }
       toast.success("QR actualizado");
     } catch (err: unknown) {
       let message = "Error al actualizar QR";
