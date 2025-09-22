@@ -94,6 +94,21 @@ export function useEditQrCode({
           else if (maybe.data?.links) remoteLinks = maybe.data.links;
           else if (maybe.data?.qr?.links) remoteLinks = maybe.data.qr.links;
 
+          // If backend returned QR object with colors, populate form fields accordingly
+          const maybeQr = maybe.qr ?? maybe.data?.qr ?? maybe.data ?? null;
+          if (maybeQr && typeof maybeQr === "object") {
+            const mq = maybeQr as Record<string, unknown>;
+            const fg = typeof mq.foreground === "string" ? mq.foreground : undefined;
+            const bg = typeof mq.background === "string" ? mq.background : undefined;
+            setFormData((prev) => ({
+              ...prev,
+              target_url: typeof mq.target_url === "string" ? mq.target_url : prev.target_url,
+              name: typeof mq.name === "string" ? mq.name : prev.name,
+              foreground: fg ?? prev.foreground,
+              background: bg ?? prev.background,
+            }));
+          }
+
           if (remoteLinks && typeof remoteLinks === "object") {
             const rl = remoteLinks as Record<string, unknown>;
             const png = typeof rl.png === "string" ? rl.png : null;
