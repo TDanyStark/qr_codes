@@ -108,8 +108,6 @@ export default function QrCodeStatsPage() {
     }
   }
 
-  // ...existing code...
-
   useEffect(() => {
     if (!id) return;
     setLoading(true);
