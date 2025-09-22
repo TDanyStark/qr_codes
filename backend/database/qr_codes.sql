@@ -51,6 +51,7 @@ CREATE TABLE `qrcodes` (
   `target_url` TEXT NOT NULL,
   `name` VARCHAR(100) NULL,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_qrcodes_token` (`token`),
   KEY `idx_qrcodes_owner_user_id` (`owner_user_id`),

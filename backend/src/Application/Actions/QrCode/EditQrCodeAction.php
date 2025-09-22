@@ -80,6 +80,8 @@ class EditQrCodeAction extends QrCodeAction
             $newForeground,
             $newBackground,
             $qr->getCreatedAt(),
+            // updatedAt will be set by DB on update; preserve current value here
+            $qr->getUpdatedAt(),
             $qr->getOwnerName(),
             $qr->getOwnerEmail()
         );

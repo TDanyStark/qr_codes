@@ -66,9 +66,9 @@ class PdoQrCodeRepository implements QrCodeRepository
         $countRow = $countStmt->fetch();
         $total = $countRow ? (int)$countRow['cnt'] : 0;
 
-        $sql = 'SELECT q.id, q.token, q.owner_user_id, q.target_url, q.name, q.foreground, q.background, q.created_at, u.name AS owner_name, u.email AS owner_email FROM qrcodes q LEFT JOIN users u ON q.owner_user_id = u.id'
+        $sql = 'SELECT q.id, q.token, q.owner_user_id, q.target_url, q.name, q.foreground, q.background, q.created_at, q.updated_at, u.name AS owner_name, u.email AS owner_email FROM qrcodes q LEFT JOIN users u ON q.owner_user_id = u.id'
             . $whereSql
-            . ' ORDER BY q.id DESC'
+            . ' ORDER BY q.updated_at DESC, q.id DESC'
             . ' LIMIT :limit OFFSET :offset';
 
         $stmt = $this->pdo->prepare($sql);
@@ -88,8 +88,12 @@ class PdoQrCodeRepository implements QrCodeRepository
         $items = [];
         foreach ($rows as $row) {
             $createdAt = null;
+            $updatedAt = null;
             if (!empty($row['created_at'])) {
                 $createdAt = new \DateTimeImmutable($row['created_at']);
+            }
+            if (!empty($row['updated_at'])) {
+                $updatedAt = new \DateTimeImmutable($row['updated_at']);
             }
 
             $items[] = new QrCode(
@@ -101,6 +105,7 @@ class PdoQrCodeRepository implements QrCodeRepository
                 $row['foreground'] ?? null,
                 $row['background'] ?? null,
                 $createdAt,
+                $updatedAt,
                 $row['owner_name'] ?? null,
                 $row['owner_email'] ?? null
             );
@@ -114,15 +119,19 @@ class PdoQrCodeRepository implements QrCodeRepository
      */
     public function findAllForUser(int $ownerUserId): array
     {
-        $stmt = $this->pdo->prepare('SELECT q.id, q.token, q.owner_user_id, q.target_url, q.name, q.foreground, q.background, q.created_at, u.name AS owner_name, u.email AS owner_email FROM qrcodes q LEFT JOIN users u ON q.owner_user_id = u.id WHERE owner_user_id = :owner ORDER BY q.id DESC');
+    $stmt = $this->pdo->prepare('SELECT q.id, q.token, q.owner_user_id, q.target_url, q.name, q.foreground, q.background, q.created_at, q.updated_at, u.name AS owner_name, u.email AS owner_email FROM qrcodes q LEFT JOIN users u ON q.owner_user_id = u.id WHERE owner_user_id = :owner ORDER BY q.id DESC');
         $stmt->execute(['owner' => $ownerUserId]);
         $rows = $stmt->fetchAll();
 
         $items = [];
         foreach ($rows as $row) {
             $createdAt = null;
+            $updatedAt = null;
             if (!empty($row['created_at'])) {
                 $createdAt = new \DateTimeImmutable($row['created_at']);
+            }
+            if (!empty($row['updated_at'])) {
+                $updatedAt = new \DateTimeImmutable($row['updated_at']);
             }
 
             $items[] = new QrCode(
@@ -134,6 +143,7 @@ class PdoQrCodeRepository implements QrCodeRepository
                 $row['foreground'] ?? null,
                 $row['background'] ?? null,
                 $createdAt,
+                $updatedAt,
                 $row['owner_name'] ?? null,
                 $row['owner_email'] ?? null
             );
@@ -147,14 +157,18 @@ class PdoQrCodeRepository implements QrCodeRepository
      */
     public function findAll(): array
     {
-        $stmt = $this->pdo->query('SELECT q.id, q.token, q.owner_user_id, q.target_url, q.name, q.foreground, q.background, q.created_at, u.name AS owner_name, u.email AS owner_email FROM qrcodes q LEFT JOIN users u ON q.owner_user_id = u.id ORDER BY q.id DESC');
+    $stmt = $this->pdo->query('SELECT q.id, q.token, q.owner_user_id, q.target_url, q.name, q.foreground, q.background, q.created_at, q.updated_at, u.name AS owner_name, u.email AS owner_email FROM qrcodes q LEFT JOIN users u ON q.owner_user_id = u.id ORDER BY q.id DESC');
         $rows = $stmt->fetchAll();
 
         $items = [];
         foreach ($rows as $row) {
             $createdAt = null;
+            $updatedAt = null;
             if (!empty($row['created_at'])) {
                 $createdAt = new \DateTimeImmutable($row['created_at']);
+            }
+            if (!empty($row['updated_at'])) {
+                $updatedAt = new \DateTimeImmutable($row['updated_at']);
             }
 
             $items[] = new QrCode(
@@ -166,6 +180,7 @@ class PdoQrCodeRepository implements QrCodeRepository
                 $row['foreground'] ?? null,
                 $row['background'] ?? null,
                 $createdAt,
+                $updatedAt,
                 $row['owner_name'] ?? null,
                 $row['owner_email'] ?? null
             );
@@ -179,7 +194,7 @@ class PdoQrCodeRepository implements QrCodeRepository
      */
     public function findOfId(int $id): QrCode
     {
-        $stmt = $this->pdo->prepare('SELECT q.id, q.token, q.owner_user_id, q.target_url, q.name, q.foreground, q.background, q.created_at, u.name AS owner_name, u.email AS owner_email FROM qrcodes q LEFT JOIN users u ON q.owner_user_id = u.id WHERE q.id = :id');
+    $stmt = $this->pdo->prepare('SELECT q.id, q.token, q.owner_user_id, q.target_url, q.name, q.foreground, q.background, q.created_at, q.updated_at, u.name AS owner_name, u.email AS owner_email FROM qrcodes q LEFT JOIN users u ON q.owner_user_id = u.id WHERE q.id = :id');
         $stmt->execute(['id' => $id]);
         $row = $stmt->fetch();
 
@@ -188,8 +203,12 @@ class PdoQrCodeRepository implements QrCodeRepository
         }
 
         $createdAt = null;
+        $updatedAt = null;
         if (!empty($row['created_at'])) {
             $createdAt = new \DateTimeImmutable($row['created_at']);
+        }
+        if (!empty($row['updated_at'])) {
+            $updatedAt = new \DateTimeImmutable($row['updated_at']);
         }
 
         return new QrCode(
@@ -201,6 +220,7 @@ class PdoQrCodeRepository implements QrCodeRepository
             $row['foreground'] ?? null,
             $row['background'] ?? null,
             $createdAt,
+            $updatedAt,
             $row['owner_name'] ?? null,
             $row['owner_email'] ?? null
         );
@@ -211,7 +231,7 @@ class PdoQrCodeRepository implements QrCodeRepository
      */
     public function findByToken(string $token): QrCode
     {
-        $stmt = $this->pdo->prepare('SELECT q.id, q.token, q.owner_user_id, q.target_url, q.name, q.foreground, q.background, q.created_at, u.name AS owner_name, u.email AS owner_email FROM qrcodes q LEFT JOIN users u ON q.owner_user_id = u.id WHERE q.token = :token');
+    $stmt = $this->pdo->prepare('SELECT q.id, q.token, q.owner_user_id, q.target_url, q.name, q.foreground, q.background, q.created_at, q.updated_at, u.name AS owner_name, u.email AS owner_email FROM qrcodes q LEFT JOIN users u ON q.owner_user_id = u.id WHERE q.token = :token');
         $stmt->execute(['token' => $token]);
         $row = $stmt->fetch();
 
@@ -220,8 +240,12 @@ class PdoQrCodeRepository implements QrCodeRepository
         }
 
         $createdAt = null;
+        $updatedAt = null;
         if (!empty($row['created_at'])) {
             $createdAt = new \DateTimeImmutable($row['created_at']);
+        }
+        if (!empty($row['updated_at'])) {
+            $updatedAt = new \DateTimeImmutable($row['updated_at']);
         }
 
         return new QrCode(
@@ -233,6 +257,7 @@ class PdoQrCodeRepository implements QrCodeRepository
             $row['foreground'] ?? null,
             $row['background'] ?? null,
             $createdAt,
+            $updatedAt,
             $row['owner_name'] ?? null,
             $row['owner_email'] ?? null
         );
@@ -274,6 +299,7 @@ class PdoQrCodeRepository implements QrCodeRepository
             $qrCode->getName(),
             $qrCode->getForeground(),
             $qrCode->getBackground(),
+            new \DateTimeImmutable(),
             new \DateTimeImmutable(),
             $ownerName,
             $ownerEmail

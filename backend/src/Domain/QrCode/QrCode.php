@@ -27,6 +27,8 @@ class QrCode implements JsonSerializable
     private ?string $ownerEmail;
 
     private ?\DateTimeImmutable $createdAt;
+    
+    private ?\DateTimeImmutable $updatedAt;
 
     public function __construct(
         ?int $id,
@@ -37,6 +39,7 @@ class QrCode implements JsonSerializable
         ?string $foreground = null,
         ?string $background = null,
         ?\DateTimeImmutable $createdAt = null,
+        ?\DateTimeImmutable $updatedAt = null,
         ?string $ownerName = null,
         ?string $ownerEmail = null
     ) {
@@ -48,6 +51,8 @@ class QrCode implements JsonSerializable
         $this->foreground = $foreground;
         $this->background = $background;
         $this->createdAt = $createdAt ?? new \DateTimeImmutable();
+        // if updatedAt not provided, default to createdAt
+        $this->updatedAt = $updatedAt ?? $this->createdAt;
         $this->ownerName = $ownerName;
         $this->ownerEmail = $ownerEmail;
     }
@@ -92,6 +97,11 @@ class QrCode implements JsonSerializable
         return $this->createdAt;
     }
 
+    public function getUpdatedAt(): ?\DateTimeImmutable
+    {
+        return $this->updatedAt;
+    }
+
     public function getOwnerName(): ?string
     {
         return $this->ownerName;
@@ -114,6 +124,7 @@ class QrCode implements JsonSerializable
             'foreground' => $this->foreground,
             'background' => $this->background,
             'created_at' => $this->createdAt?->format('Y-m-d H:i:s'),
+            'updated_at' => $this->updatedAt?->format('Y-m-d H:i:s'),
             'owner_name' => $this->ownerName,
             'owner_email' => $this->ownerEmail,
         ];
