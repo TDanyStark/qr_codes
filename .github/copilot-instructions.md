@@ -149,18 +149,18 @@ CREATE TABLE users (
 
 -- Tabla de códigos QR
 CREATE TABLE `qrcodes` (
-  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `token` VARCHAR(64) NOT NULL,
-  `owner_user_id` BIGINT UNSIGNED NOT NULL,
-  `foreground` VARCHAR(7) NULL COMMENT 'HEX color for QR foreground, e.g. #000000',
-  `background` VARCHAR(7) NULL COMMENT 'HEX color for QR background, e.g. #FFFFFF',
-  `target_url` TEXT NOT NULL,
-  `name` VARCHAR(100) NULL,
-  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_qrcodes_token` (`token`),
-  KEY `idx_qrcodes_owner_user_id` (`owner_user_id`),
-  CONSTRAINT `fk_qrcodes_user` FOREIGN KEY (`owner_user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `token` VARCHAR(64) NOT NULL,
+    `owner_user_id` BIGINT UNSIGNED NOT NULL,
+    `foreground` VARCHAR(7) NULL COMMENT 'HEX color for QR foreground, e.g. #000000',
+    `background` VARCHAR(7) NULL COMMENT 'HEX color for QR background, e.g. #FFFFFF',
+    `target_url` TEXT NOT NULL,
+    `name` VARCHAR(100) NULL,
+    `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_qrcodes_token` (`token`),
+    KEY `idx_qrcodes_owner_user_id` (`owner_user_id`),
+    CONSTRAINT `fk_qrcodes_user` FOREIGN KEY (`owner_user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Tabla de escaneos

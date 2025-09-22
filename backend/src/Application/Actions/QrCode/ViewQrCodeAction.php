@@ -62,9 +62,12 @@ class ViewQrCodeAction extends QrCodeAction
 
     // If files are missing regenerate them using writer and storage
     if (!($pngExists && $svgExists)) {
-      // use default colors (black on white) — no color info is stored currently
-      $fg = $this->colorParser->parseHexColor('#000000');
-      $bg = $this->colorParser->parseHexColor('#ffffff');
+      // Prefer colors stored in DB (via domain object); fall back to defaults
+      $fgHex = $qr->getForeground() ?? '#000000';
+      $bgHex = $qr->getBackground() ?? '#ffffff';
+
+      $fg = $this->colorParser->parseHexColor($fgHex);
+      $bg = $this->colorParser->parseHexColor($bgHex);
 
       try {
         $generated = $this->qrWriter->generate($redirect, $fg, $bg);
