@@ -117,7 +117,9 @@ export function useEditQrCode({
             const redirect =
               typeof rl.redirect === "string" ? rl.redirect : null;
             setLinks({ png, svg, redirect });
-            setPreviewUrl(png || svg || null);
+            const cb = Date.now();
+            const src = png ? `${png}?cb=${cb}` : svg ? `${svg}?cb=${cb}` : null;
+            setPreviewUrl(src);
           }
         } catch {
           // ignore - keep optimistic/fallback links
