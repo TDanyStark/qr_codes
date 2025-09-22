@@ -33,15 +33,21 @@ class StatsQrCodeAction extends Action
             return $this->respondWithData(['error' => 'QR not found'], 404);
         }
 
-    // Use ScanRepository to fetch aggregated data
-    $daily = $this->scanRepository->dailyCounts($id, 30);
-    $countries = $this->scanRepository->countryBreakdown($id, 10);
-    $total = $this->scanRepository->totalCount($id);
+        // optional city filter from query string
+        $queryParams = $this->request->getQueryParams();
+        $city = isset($queryParams['city']) && $queryParams['city'] !== '' ? (string)$queryParams['city'] : null;
+
+        // Use ScanRepository to fetch aggregated data (optionally filtered by city)
+        $daily = $this->scanRepository->dailyCounts($id, 30, $city);
+        $countries = $this->scanRepository->countryBreakdown($id, 10, $city);
+        $cities = $this->scanRepository->cityBreakdown($id, 20, null); // top cities (no country filter by default)
+        $total = $this->scanRepository->totalCount($id, $city);
 
         $data = [
-            'qr' => $qr->toArray(),
+            'qr' => $qr,
             'daily' => $daily,
             'countries' => $countries,
+            'cities' => $cities,
             'total' => $total,
         ];
 

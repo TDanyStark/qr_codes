@@ -41,6 +41,7 @@ type StatsResponse = {
   qr: Record<string, unknown>;
   daily: DailyItem[];
   countries: CountryItem[];
+  cities?: { city: string | null; cnt: number | string }[];
   total: number;
 };
 
@@ -77,7 +78,17 @@ export default function QrCodeStatsPage() {
     const token = localStorage.getItem("token");
     axios
       .get(`/api/qrcodes/${id}/stats`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
-      .then((res) => setData(res.data))
+      .then((res) => {
+        // The backend wraps payload as { statusCode: ..., data: { ... } }
+        const payload = res?.data?.data ?? res?.data ?? null;
+        if (payload) {
+          // ensure total is a number
+          if (payload.total !== undefined) payload.total = Number(payload.total);
+          setData(payload);
+        } else {
+          setData(null);
+        }
+      })
       .catch((err) => {
         // Normalize error to string to avoid rendering objects
         const payload = err?.response?.data ?? err;
@@ -97,6 +108,11 @@ export default function QrCodeStatsPage() {
   const countrySeries = useMemo(() => {
     if (!data?.countries) return [] as { name: string; value: number; color: string }[];
     return data.countries.map((c, i) => ({ name: c.country || "Unknown", value: Number(c.cnt), color: COLORS[i % COLORS.length] }));
+  }, [data]);
+
+  const citySeries = useMemo(() => {
+    if (!data?.cities) return [] as { name: string; value: number; color: string }[];
+    return data.cities.map((c, i) => ({ name: c.city || "Unknown", value: Number(c.cnt), color: COLORS[i % COLORS.length] }));
   }, [data]);
 
   return (
@@ -136,8 +152,9 @@ export default function QrCodeStatsPage() {
       {error && <div className="text-red-400">Error: {error}</div>}
 
       {data && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="col-span-2 bg-card p-4 rounded-md shadow-sm dark:bg-surface-700">
+        <div className="space-y-6">
+          {/* First row: full width daily chart */}
+          <div className="bg-card p-4 rounded-md shadow-sm dark:bg-surface-700">
             <h2 className="text-xl font-medium mb-2">Scans (Daily)</h2>
             {dailySeries.length === 0 ? (
               <div>No hay datos diarios.</div>
@@ -156,28 +173,52 @@ export default function QrCodeStatsPage() {
             )}
           </div>
 
-          <div className="bg-card p-4 rounded-md shadow-sm dark:bg-surface-700">
-            <h2 className="text-xl font-medium mb-2">By Country</h2>
-            {countrySeries.length === 0 ? (
-              <div>No hay datos por país.</div>
-            ) : (
-              <div style={{ width: "100%", height: 300 }}>
-                <ResponsiveContainer>
-                  <PieChart>
-                    <Pie data={countrySeries} dataKey="value" nameKey="name" outerRadius={90} fill="#8884d8">
-                      {countrySeries.map((entry: { name: string; value: number; color: string }, index: number) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Legend />
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            )}
+          {/* Second row: country and city side-by-side */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-card p-4 rounded-md shadow-sm dark:bg-surface-700">
+              <h2 className="text-xl font-medium mb-2">By Country</h2>
+              {countrySeries.length === 0 ? (
+                <div>No hay datos por país.</div>
+              ) : (
+                <div style={{ width: "100%", height: 300 }}>
+                  <ResponsiveContainer>
+                    <PieChart>
+                      <Pie data={countrySeries} dataKey="value" nameKey="name" outerRadius={90} fill="#8884d8">
+                        {countrySeries.map((entry: { name: string; value: number; color: string }, index: number) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Legend />
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
 
-            <div className="mt-4">
-              <div className="text-sm text-muted-foreground">Total scans: <strong>{data.total}</strong></div>
+              <div className="mt-4">
+                <div className="text-sm text-muted-foreground">Total scans: <strong>{data.total}</strong></div>
+              </div>
+            </div>
+
+            <div className="bg-card p-4 rounded-md shadow-sm dark:bg-surface-700">
+              <h2 className="text-xl font-medium mb-2">By City</h2>
+              {citySeries.length === 0 ? (
+                <div>No hay datos por ciudad.</div>
+              ) : (
+                <div style={{ width: "100%", height: 300 }}>
+                  <ResponsiveContainer>
+                    <PieChart>
+                      <Pie data={citySeries} dataKey="value" nameKey="name" outerRadius={90} fill="#82ca9d">
+                        {citySeries.map((entry: { name: string; value: number; color: string }, index: number) => (
+                          <Cell key={`cell-city-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Legend />
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
             </div>
           </div>
         </div>
