@@ -37,7 +37,13 @@ export default function EditQrCode({ qr, onClose, onUpdated }: Props) {
   const { users, loading: loadingUsers } = useSubscriberUsers(open);
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) onClose?.(); }}>
+    <Dialog 
+      open={open} 
+      onOpenChange={(v) => { 
+        setOpen(v); 
+        if (!v) onClose?.(); 
+      }}
+    >
       <DialogContent className="sm:max-w-[900px] max-h-[650px] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>Editar Código QR</DialogTitle>
@@ -64,7 +70,18 @@ export default function EditQrCode({ qr, onClose, onUpdated }: Props) {
           </form>
         </div>
         <DialogFooter className="flex-shrink-0 bg-transparent">
-          <Button type="button" variant="outline" onClick={() => { setOpen(false); handleClose(); }} disabled={loading}>Cancelar</Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              setOpen(false);
+              handleClose();
+              onClose?.();
+            }}
+            disabled={loading}
+          >
+            Cancelar
+          </Button>
           <Button type="submit" disabled={loading} form="edit-qr-form">{loading ? 'Guardando...' : 'Guardar cambios'}</Button>
         </DialogFooter>
       </DialogContent>
