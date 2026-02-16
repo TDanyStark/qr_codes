@@ -75,6 +75,40 @@ CREATE TABLE `scans` (
   CONSTRAINT `fk_scans_qrcode` FOREIGN KEY (`qrcode_id`) REFERENCES `qrcodes` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------
+-- Tabla: qr_subscriptions (usuarios suscritos a QR)
+-- --------------------------------------------------
+CREATE TABLE `qr_subscriptions` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `qrcode_id` BIGINT UNSIGNED NOT NULL,
+  `user_id` BIGINT UNSIGNED NOT NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_qr_subscriptions_qrcode_user` (`qrcode_id`, `user_id`),
+  KEY `idx_qr_subscriptions_qrcode_id` (`qrcode_id`),
+  KEY `idx_qr_subscriptions_user_id` (`user_id`),
+  CONSTRAINT `fk_qr_subscriptions_qrcode` FOREIGN KEY (`qrcode_id`) REFERENCES `qrcodes` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
+  CONSTRAINT `fk_qr_subscriptions_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------
+-- Tabla: report_settings (configuracion de reportes)
+-- --------------------------------------------------
+CREATE TABLE `report_settings` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `schedule_type` ENUM('monthly','weekly') NOT NULL DEFAULT 'monthly',
+  `day_of_month` TINYINT UNSIGNED NULL,
+  `day_of_week` TINYINT UNSIGNED NULL COMMENT '1=Monday ... 7=Sunday',
+  `time_of_day` TIME NOT NULL DEFAULT '08:00:00',
+  `timezone` VARCHAR(64) NOT NULL DEFAULT 'UTC',
+  `looker_url` TEXT NULL,
+  `active` TINYINT(1) NOT NULL DEFAULT 1,
+  `last_run_at` TIMESTAMP NULL DEFAULT NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 SET foreign_key_checks = 1;
 SET sql_notes = 1;
 
@@ -84,6 +118,14 @@ SET sql_notes = 1;
 -- --------------------------------------------------
 /*
 INSERT INTO users (name, email, rol) VALUES ('Admin', 'admin@tu-dominio.com', 'admin');
+*/
+
+-- --------------------------------------------------
+-- (Opcional) Configuracion inicial de reportes
+-- --------------------------------------------------
+/*
+INSERT INTO report_settings (schedule_type, day_of_month, day_of_week, time_of_day, timezone, looker_url, active)
+VALUES ('monthly', 1, NULL, '08:00:00', 'UTC', NULL, 1);
 */
 
 -- Fin del script

@@ -26,17 +26,44 @@ class BasicMailer implements MailerInterface
         }
     }
 
-    public function send(string $to, string $subject, string $body, array $headers = []): void
+    public function send(string $to, string $subject, string $body, array $headers = [], array $attachments = []): void
     {
         $headersStr = '';
-        $allHeaders = array_merge(['From' => $this->from, 'Content-Type' => 'text/plain; charset=utf-8'], $headers);
+        $allHeaders = array_merge(['From' => $this->from], $headers);
         foreach ($allHeaders as $k => $v) {
             $headersStr .= "$k: $v\r\n";
         }
 
         if ($this->driver === 'mail') {
-            // Use PHP mail()
-            $ok = @mail($to, $subject, $body, $headersStr);
+            $normalizedBody = preg_replace('/\r\n|\r|\n/', "\r\n", $body ?? '');
+            if (!empty($attachments)) {
+                $boundary = '=_QRCODE_' . bin2hex(random_bytes(12));
+                $headersStr .= "Content-Type: multipart/mixed; boundary=\"{$boundary}\"\r\n";
+
+                $message = "--{$boundary}\r\n";
+                $message .= "Content-Type: text/plain; charset=utf-8\r\n\r\n";
+                $message .= $normalizedBody . "\r\n";
+
+                foreach ($attachments as $attachment) {
+                    $filename = $attachment['filename'] ?? 'attachment.dat';
+                    $mime = $attachment['mime'] ?? 'application/octet-stream';
+                    $content = $attachment['content'] ?? '';
+                    $encoded = chunk_split(base64_encode($content));
+
+                    $message .= "--{$boundary}\r\n";
+                    $message .= "Content-Type: {$mime}; name=\"{$filename}\"\r\n";
+                    $message .= "Content-Transfer-Encoding: base64\r\n";
+                    $message .= "Content-Disposition: attachment; filename=\"{$filename}\"\r\n\r\n";
+                    $message .= $encoded . "\r\n";
+                }
+                $message .= "--{$boundary}--\r\n";
+
+                $ok = @mail($to, $subject, $message, $headersStr);
+            } else {
+                $headersStr .= "Content-Type: text/plain; charset=utf-8\r\n";
+                // Use PHP mail()
+                $ok = @mail($to, $subject, $normalizedBody, $headersStr);
+            }
             if ($ok === false) {
                 $this->logger->error('BasicMailer: mail() returned false', ['to' => $to, 'subject' => $subject]);
                 throw new MailException('Unable to send mail using mail()');
@@ -46,6 +73,14 @@ class BasicMailer implements MailerInterface
         }
 
         // default: log the email (safe for dev)
-        $this->logger->info('BasicMailer: (log) sending email', ['to' => $to, 'subject' => $subject, 'body' => $body]);
+        $attachmentNames = array_map(function ($attachment) {
+            return $attachment['filename'] ?? 'attachment.dat';
+        }, $attachments);
+        $this->logger->info('BasicMailer: (log) sending email', [
+            'to' => $to,
+            'subject' => $subject,
+            'body' => $body,
+            'attachments' => $attachmentNames,
+        ]);
     }
 }

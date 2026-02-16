@@ -28,3 +28,8 @@ Eres experto en SlimPHP v4, React + Vite, Tailwind v4 y MySQL. Prioriza la arqui
 - Evita repetir codigo, reutiliza componentes y servicios siempre que sea posible.
 - Mantén la documentación actualizada, especialmente en README.md de cada carpeta y en los comentarios del código.
 - Agrega los nuevos features aqui en este archivo para que todos los desarrolladores tengan una referencia clara de la arquitectura y convenciones del proyecto.
+
+# Nuevos features
+- Reportes periodicos por QR con suscripciones: tablas `qr_subscriptions` y `report_settings` en backend/database/qr_codes.sql.
+- Servicio backend: `ReportNotificationService` (backend/src/Application/Services/Reporting) genera resumen, CSV adjunto y link global de Looker.
+- Job CLI: `backend/tools/run_report_notifications.php` para ejecutar via cron.

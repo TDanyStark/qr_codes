@@ -39,4 +39,20 @@ Run this command in the application directory to run the test suite
 composer test
 ```
 
+## Report notifications (cron)
+
+This project includes a CLI job that sends periodic QR reports by email based on the `report_settings` table and `qr_subscriptions`.
+
+Run it manually:
+
+```bash
+php tools/run_report_notifications.php
+```
+
+Schedule it with cron (example runs hourly):
+
+```bash
+0 * * * * /usr/bin/php /path/to/backend/tools/run_report_notifications.php
+```
+
 That's it! Now go build something cool.

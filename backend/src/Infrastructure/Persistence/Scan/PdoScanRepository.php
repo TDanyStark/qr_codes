@@ -148,4 +148,42 @@ class PdoScanRepository implements ScanRepository
         $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: ['total' => 0];
         return (int)$row['total'];
     }
+
+    public function countInRange(int $qrCodeId, \DateTimeInterface $start, \DateTimeInterface $end): int
+    {
+        $sql = 'SELECT COUNT(*) as total FROM scans WHERE qrcode_id = :id AND scanned_at >= :start AND scanned_at < :end';
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindValue(':id', $qrCodeId, PDO::PARAM_INT);
+        $stmt->bindValue(':start', $start->format('Y-m-d H:i:s'));
+        $stmt->bindValue(':end', $end->format('Y-m-d H:i:s'));
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: ['total' => 0];
+        return (int)$row['total'];
+    }
+
+    public function findByQrCodeInRange(int $qrCodeId, \DateTimeInterface $start, \DateTimeInterface $end, int $limit = 10000): array
+    {
+        $sql = 'SELECT id, qrcode_id, scanned_at, ip, user_agent, city, country FROM scans WHERE qrcode_id = :id AND scanned_at >= :start AND scanned_at < :end ORDER BY id DESC LIMIT :limit';
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindValue(':id', $qrCodeId, PDO::PARAM_INT);
+        $stmt->bindValue(':start', $start->format('Y-m-d H:i:s'));
+        $stmt->bindValue(':end', $end->format('Y-m-d H:i:s'));
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $items = [];
+        foreach ($rows as $row) {
+            $items[] = new Scan(
+                (int)$row['id'],
+                (int)$row['qrcode_id'],
+                new \DateTimeImmutable($row['scanned_at']),
+                $row['ip'] ?? null,
+                $row['user_agent'] ?? null,
+                $row['city'] ?? null,
+                $row['country'] ?? null
+            );
+        }
+        return $items;
+    }
 }

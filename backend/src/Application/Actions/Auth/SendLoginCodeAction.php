@@ -52,7 +52,7 @@ class SendLoginCodeAction extends Action
     $body = "<p>Tu código de acceso es: <strong>{$code}</strong></p>" .
       "<p>Si no lo solicitaste, ignora este mensaje.</p>";
     try {
-      $this->mailer->send($email, $subject, $body);
+      $this->mailer->send($email, $subject, $body, [], []);
     } catch (MailException $e) {
       // Log and continue - do not reveal mail internal errors to client
       $this->logger->error('Failed to send login code email', ['email' => $email, 'error' => $e->getMessage()]);

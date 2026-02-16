@@ -40,4 +40,15 @@ interface ScanRepository
      * Optionally filter by city.
      */
     public function totalCount(int $qrCodeId, ?string $city = null): int;
+
+    /**
+     * Return total scans for a QR in a date range.
+     */
+    public function countInRange(int $qrCodeId, \DateTimeInterface $start, \DateTimeInterface $end): int;
+
+    /**
+     * Return scans for a QR in a date range (for CSV export).
+     * @return Scan[]
+     */
+    public function findByQrCodeInRange(int $qrCodeId, \DateTimeInterface $start, \DateTimeInterface $end, int $limit = 10000): array;
 }

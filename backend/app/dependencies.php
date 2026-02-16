@@ -27,6 +27,7 @@ use App\Application\Services\UrlBuilder;
 use App\Infrastructure\Utils\PublicDirectoryResolver;
 use App\Application\Services\GeoIp\GeoIpServiceInterface;
 use App\Infrastructure\GeoIp\IpDataGeoIpService;
+use App\Application\Services\Reporting\ReportNotificationService;
 
 
 return function (ContainerBuilder $containerBuilder) {
@@ -83,5 +84,6 @@ return function (ContainerBuilder $containerBuilder) {
         PublicDirectoryResolver::class => \DI\autowire(PublicDirectoryResolver::class),
         QrColorParserInterface::class => \DI\autowire(QrColorParser::class),
         GeoIpServiceInterface::class => \DI\autowire(IpDataGeoIpService::class),
+        ReportNotificationService::class => \DI\autowire(ReportNotificationService::class),
     ]);
 };

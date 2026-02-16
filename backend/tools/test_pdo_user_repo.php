@@ -6,6 +6,8 @@ require __DIR__ . '/../vendor/autoload.php';
 
 use App\Infrastructure\Persistence\User\PdoUserRepository;
 use PDO;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
 
 // Load .env
 $envFile = __DIR__ . '/../../.env';
@@ -36,7 +38,10 @@ try {
         PDO::ATTR_EMULATE_PREPARES => false,
     ]);
 
-    $repo = new PdoUserRepository($pdo);
+    $logger = new Logger('test-users');
+    $logger->pushHandler(new StreamHandler('php://stdout', Logger::INFO));
+
+    $repo = new PdoUserRepository($pdo, $logger);
     $users = $repo->findAll();
 
     echo "Found " . count($users) . " users:\n";

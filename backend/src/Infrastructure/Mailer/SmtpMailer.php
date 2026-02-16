@@ -30,7 +30,7 @@ class SmtpMailer implements MailerInterface
         ];
     }
 
-    public function send(string $to, string $subject, string $body, array $headers = []): void
+    public function send(string $to, string $subject, string $body, array $headers = [], array $attachments = []): void
     {
         $mail = new PHPMailer(true);
 
@@ -98,6 +98,13 @@ class SmtpMailer implements MailerInterface
                 $normalizedBody = preg_replace('/\r\n|\r|\n/', "\r\n", $body);
                 $mail->Body = $normalizedBody;
                 $mail->AltBody = strip_tags($normalizedBody);
+            }
+
+            foreach ($attachments as $attachment) {
+                $filename = $attachment['filename'] ?? 'attachment.dat';
+                $mime = $attachment['mime'] ?? 'application/octet-stream';
+                $content = $attachment['content'] ?? '';
+                $mail->addStringAttachment($content, $filename, 'base64', $mime);
             }
             $mail->send();
         } catch (PHPMailerException $e) {

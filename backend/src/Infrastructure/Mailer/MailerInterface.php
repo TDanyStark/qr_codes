@@ -16,5 +16,8 @@ interface MailerInterface
      * @return void
      * @throws MailException on failure
      */
-    public function send(string $to, string $subject, string $body, array $headers = []): void;
+    /**
+     * @param array<int, array{filename: string, content: string, mime?: string}> $attachments
+     */
+    public function send(string $to, string $subject, string $body, array $headers = [], array $attachments = []): void;
 }
