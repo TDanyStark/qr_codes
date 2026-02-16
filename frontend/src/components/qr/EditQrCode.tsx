@@ -35,13 +35,20 @@ export default function EditQrCode({ qr, onClose, onUpdated }: Props) {
     copyRedirect,
   } = useEditQrCode({ qr, onUpdated });
   const { users, loading: loadingUsers } = useSubscriberUsers(open);
+  const handleDialogClose = () => {
+    handleClose();
+    onClose?.();
+  };
 
   return (
-    <Dialog 
-      open={open} 
-      onOpenChange={(v) => { 
-        setOpen(v); 
-        if (!v) onClose?.(); 
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        if (v) {
+          setOpen(true);
+          return;
+        }
+        handleDialogClose();
       }}
     >
       <DialogContent className="sm:max-w-[900px] max-h-[650px] overflow-hidden flex flex-col">
@@ -74,9 +81,7 @@ export default function EditQrCode({ qr, onClose, onUpdated }: Props) {
             type="button"
             variant="outline"
             onClick={() => {
-              setOpen(false);
-              handleClose();
-              onClose?.();
+              handleDialogClose();
             }}
             disabled={loading}
           >
