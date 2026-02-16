@@ -23,7 +23,6 @@ interface Props {
 export default function EditQrCode({ qr, onClose, onUpdated }: Props) {
   const {
     open,
-    setOpen,
     formData,
     updateField,
     loading,
@@ -44,11 +43,7 @@ export default function EditQrCode({ qr, onClose, onUpdated }: Props) {
     <Dialog
       open={open}
       onOpenChange={(v) => {
-        if (v) {
-          setOpen(true);
-          return;
-        }
-        handleDialogClose();
+        if (!v) handleDialogClose();
       }}
     >
       <DialogContent className="sm:max-w-[900px] max-h-[650px] overflow-hidden flex flex-col">

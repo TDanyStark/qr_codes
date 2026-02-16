@@ -11,7 +11,6 @@ interface UseEditQrCodeParams {
 
 interface UseEditQrCodeReturn {
   open: boolean;
-  setOpen: (v: boolean) => void;
   formData: QrFormData;
   updateField: <K extends keyof QrFormData>(
     key: K,
@@ -59,6 +58,18 @@ export function useEditQrCode({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const targetInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleClose = useCallback(() => {
+    setOpen(false);
+  }, []);
+
+  const focusTargetInput = useCallback(() => {
+    const el =
+      targetInputRef.current || document.getElementById("target_url");
+    if (el && typeof (el as HTMLInputElement).focus === "function") {
+      (el as HTMLInputElement).focus();
+    }
+  }, []);
 
   useEffect(() => {
     if (qr) {
@@ -147,16 +158,12 @@ export function useEditQrCode({
       setCopied(false);
       setOpen(true);
       setTimeout(() => {
-        const el =
-          targetInputRef.current || document.getElementById("target_url");
-        if (el && typeof (el as HTMLInputElement).focus === "function") {
-          (el as HTMLInputElement).focus();
-        }
+        focusTargetInput();
       }, 50);
     } else {
-      setOpen(false);
+      handleClose();
     }
-  }, [qr]);
+  }, [focusTargetInput, handleClose, qr]);
 
   const updateField = useCallback(
     <K extends keyof QrFormData>(key: K, value: QrFormData[K]) => {
@@ -256,13 +263,8 @@ export function useEditQrCode({
     }
   };
 
-  const handleClose = () => {
-    setOpen(false);
-  };
-
   return {
     open,
-    setOpen,
     formData,
     updateField,
     loading,
