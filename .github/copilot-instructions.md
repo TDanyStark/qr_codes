@@ -22,3 +22,9 @@ Eres experto en SlimPHP v4, React + Vite, Tailwind v4 y MySQL. Prioriza la arqui
 - Backend: composer start (dev) o docker-compose up -d; tests con composer test (ver backend/README.md).
 - Frontend: flujo de login en 2 pasos (dev) en src/pages/LoginEmail.tsx y src/pages/LoginCode.tsx; mock en src/lib/api.ts (ver frontend/README.md).
 - Logs backend en backend/logs/.
+
+# IMPORTANTE
+- Cada vez que crees un nuevo feature, sigue la estructura y patrones ya establecidos, asegurando consistencia en todo el proyecto.
+- Evita repetir codigo, reutiliza componentes y servicios siempre que sea posible.
+- Mantén la documentación actualizada, especialmente en README.md de cada carpeta y en los comentarios del código.
+- Agrega los nuevos features aqui en este archivo para que todos los desarrolladores tengan una referencia clara de la arquitectura y convenciones del proyecto.
