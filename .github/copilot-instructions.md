@@ -33,3 +33,4 @@ Eres experto en SlimPHP v4, React + Vite, Tailwind v4 y MySQL. Prioriza la arqui
 - Reportes periodicos por QR con suscripciones: tablas `qr_subscriptions` y `report_settings` en backend/database/qr_codes.sql.
 - Servicio backend: `ReportNotificationService` (backend/src/Application/Services/Reporting) genera resumen, CSV adjunto y link global de Looker.
 - Job CLI: `backend/tools/run_report_notifications.php` para ejecutar via cron.
+- Admin UI y endpoints para suscripciones de QR y configuracion de reportes (report settings).

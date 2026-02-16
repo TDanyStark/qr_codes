@@ -56,3 +56,18 @@ Schedule it with cron (example runs hourly):
 ```
 
 That's it! Now go build something cool.
+
+## QR subscriptions + report settings (admin)
+
+Endpoints (auth required):
+
+- `GET /api/qrcodes/{id}/subscriptions` - list subscriber user ids for a QR (owner or admin).
+- `POST /api/qrcodes/{id}/subscriptions` - replace subscriber user ids for a QR (owner or admin).
+- `GET /api/users/subscribers` - list users for subscription selection.
+
+Admin-only report settings:
+
+- `GET /api/report-settings`
+- `POST /api/report-settings`
+- `PUT /api/report-settings/{id}`
+- `POST /api/report-settings/{id}/activate`

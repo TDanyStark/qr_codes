@@ -4,6 +4,7 @@ import LoginEmail from './pages/LoginEmail'
 import LoginCode from './pages/LoginCode'
 import QrCodesPage from './pages/QrCodesPage'
 import QrCodeStatsPage from './pages/QrCodeStatsPage'
+import ReportSettingsPage from './pages/ReportSettingsPage'
 import Layout from './components/Layout'
 import RequireAuth from './components/RequireAuth'
 import RequireAdmin from './components/RequireAdmin'
@@ -39,6 +40,16 @@ export default function AppRoutes() {
             <RequireAuth>
               <RequireAdmin>
                 <UsersPage />
+              </RequireAdmin>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/report-settings"
+          element={
+            <RequireAuth>
+              <RequireAdmin>
+                <ReportSettingsPage />
               </RequireAdmin>
             </RequireAuth>
           }

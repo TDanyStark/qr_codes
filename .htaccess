@@ -1,24 +1,33 @@
-RewriteEngine On
-
+RewriteEngine On 
+# ---------------------------------------------------------------------------- 
+# 0. Servir archivos físicos del backend/public (ej: /tmp/qrcodes/*.png) 
+# ---------------------------------------------------------------------------- 
+RewriteCond %{DOCUMENT_ROOT}/backend/public%{REQUEST_URI} -f 
+RewriteRule ^ backend/public%{REQUEST_URI} [L]
+# ---------------------------------------------------------------------------- 
+# 1. Slim backend (/api/* , /r/* , /tmp/* cuando no hay archivo físico) 
+# ---------------------------------------------------------------------------- 
+RewriteCond %{REQUEST_URI} ^/(api|r|tmp) [NC] 
+RewriteRule ^ backend/public/index.php [QSA,L] 
+# ---------------------------------------------------------------------------- 
+# 2. Frontend assets (Vite) en /frontend/assets
 # ----------------------------------------------------------------------------
-# 1. Backend Slim (solo si no existen archivos en /backend/public/tmp)
-# ----------------------------------------------------------------------------
-# Primero: si el archivo existe en backend/public/tmp, se sirve directo
-RewriteCond %{REQUEST_URI} ^/tmp/
-RewriteCond %{DOCUMENT_ROOT}/backend/public%{REQUEST_URI} -f
-RewriteRule ^ tmp/%{REQUEST_URI} [L]
-
-# Si no existe archivo físico, entonces va a Slim
-RewriteCond %{REQUEST_URI} ^/(api|r|tmp) [NC]
-RewriteRule ^ backend/public/index.php [QSA,L]
-
-# ----------------------------------------------------------------------------
-# 2. Frontend estático
-# ----------------------------------------------------------------------------
+RewriteCond %{REQUEST_URI} ^/assets/ [NC]
 RewriteCond %{DOCUMENT_ROOT}/frontend%{REQUEST_URI} -f
-RewriteRule ^ frontend%{REQUEST_URI} [L]
-
-# ----------------------------------------------------------------------------
-# 3. SPA fallback
-# ----------------------------------------------------------------------------
+RewriteRule ^assets/(.*)$ frontend/assets/$1 [L]
+# ---------------------------------------------------------------------------- 
+# 3. Frontend estático (/frontend/*) 
+# ---------------------------------------------------------------------------- 
+RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} -f 
+RewriteRule ^ - [L] 
+# ---------------------------------------------------------------------------- 
+# 4. SPA fallback (React Router) 
+# ---------------------------------------------------------------------------- 
 RewriteRule ^ frontend/index.html [L]
+
+<IfModule mod_headers.c>
+  # Evitar cache del navegador
+  Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+  Header set Pragma "no-cache"
+  Header set Expires 0
+</IfModule>

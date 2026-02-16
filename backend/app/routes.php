@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Application\Actions\User\ListUsersAction;
 use App\Application\Actions\User\ViewUserAction;
 use App\Application\Actions\User\CreateUserAction;
+use App\Application\Actions\User\ListUsersForSubscriptionAction;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\App;
@@ -21,6 +22,12 @@ use \App\Application\Actions\QrCode\ViewQrCodeAction;
 use App\Application\Actions\QrCode\EditQrCodeAction;
 use \App\Application\Actions\QrCode\StatsQrCodeAction;
 use \App\Application\Actions\QrCode\StatsQrCodeCsvAction;
+use App\Application\Actions\QrSubscription\ListQrSubscriptionsAction;
+use App\Application\Actions\QrSubscription\UpdateQrSubscriptionsAction;
+use App\Application\Actions\ReportSettings\ListReportSettingsAction;
+use App\Application\Actions\ReportSettings\CreateReportSettingsAction;
+use App\Application\Actions\ReportSettings\UpdateReportSettingsAction;
+use App\Application\Actions\ReportSettings\ActivateReportSettingsAction;
 
 return function (App $app) {
     $app->options('/{routes:.*}', function (Request $request, Response $response) {
@@ -33,6 +40,9 @@ return function (App $app) {
             $group->post('/code', SendLoginCodeAction::class);
             $group->post('/code/verify', VerifyLoginCodeAction::class);
         });
+
+        $group->get('/users/subscribers', ListUsersForSubscriptionAction::class)
+            ->add(JwtAuthMiddleware::class);
 
         $group->group('/users', function (Group $group) {
             $group->get('', ListUsersAction::class);
@@ -48,9 +58,20 @@ return function (App $app) {
             $group->get('/{id}', ViewQrCodeAction::class);
             $group->get('/{id}/stats', StatsQrCodeAction::class);
             $group->get('/{id}/stats/csv', StatsQrCodeCsvAction::class);
+            $group->get('/{id}/subscriptions', ListQrSubscriptionsAction::class);
+            $group->post('/{id}/subscriptions', UpdateQrSubscriptionsAction::class);
             $group->post('/{id}/edit', EditQrCodeAction::class);
             $group->post('', CreateQrCodeAction::class);
         })->add(JwtAuthMiddleware::class);
+
+        $group->group('/report-settings', function (Group $group) {
+            $group->get('', ListReportSettingsAction::class);
+            $group->post('', CreateReportSettingsAction::class);
+            $group->put('/{id}', UpdateReportSettingsAction::class);
+            $group->post('/{id}/activate', ActivateReportSettingsAction::class);
+        })
+            ->add(AdminRoleMiddleware::class)
+            ->add(JwtAuthMiddleware::class);
 
         // Token verify endpoint - returns 200 if token is valid (middleware will reject otherwise)
         $group->get('/token/verify', function (Request $request, Response $response) {

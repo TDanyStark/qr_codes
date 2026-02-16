@@ -21,6 +21,19 @@ class PdoReportSettingsRepository implements ReportSettingsRepository
         $this->logger = $logger;
     }
 
+    public function listAll(): array
+    {
+        $stmt = $this->pdo->query('SELECT * FROM report_settings ORDER BY id DESC');
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+        $items = [];
+        foreach ($rows as $row) {
+            $items[] = $this->mapRow($row);
+        }
+
+        return $items;
+    }
+
     public function getActive(): ?ReportSettings
     {
         $stmt = $this->pdo->query('SELECT * FROM report_settings WHERE active = 1 ORDER BY id ASC LIMIT 1');
@@ -92,6 +105,23 @@ class PdoReportSettingsRepository implements ReportSettingsRepository
         ]);
 
         return $settings;
+    }
+
+    public function setActive(int $id): void
+    {
+        try {
+            $this->pdo->beginTransaction();
+            $this->pdo->exec('UPDATE report_settings SET active = 0');
+            $stmt = $this->pdo->prepare('UPDATE report_settings SET active = 1 WHERE id = :id');
+            $stmt->execute(['id' => $id]);
+            $this->pdo->commit();
+        } catch (\Throwable $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            $this->logger->error('Failed to set active report settings: ' . $e->getMessage());
+            throw $e;
+        }
     }
 
     public function updateLastRunAt(int $id, \DateTimeInterface $lastRunAt): void

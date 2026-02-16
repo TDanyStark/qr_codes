@@ -14,6 +14,7 @@ use App\Application\Services\QrCode\QrColorParserInterface;
 use App\Infrastructure\Utils\PublicDirectoryResolver;
 use App\Application\Services\UrlBuilder;
 use \App\Domain\QrCode\QrCode;
+use App\Domain\QrSubscription\QrSubscriptionRepository;
 
 class EditQrCodeAction extends QrCodeAction
 {
@@ -22,8 +23,9 @@ class EditQrCodeAction extends QrCodeAction
     private QrColorParserInterface $colorParser;
     private PublicDirectoryResolver $publicResolver;
     private UrlBuilder $urlBuilder;
+    private QrSubscriptionRepository $subscriptionRepository;
 
-    public function __construct(LoggerInterface $logger, QrCodeRepository $qrCodeRepository, SettingsInterface $settings, QrWriterInterface $qrWriter, FileStorageInterface $fileStorage, QrColorParserInterface $colorParser, PublicDirectoryResolver $publicResolver, UrlBuilder $urlBuilder)
+    public function __construct(LoggerInterface $logger, QrCodeRepository $qrCodeRepository, SettingsInterface $settings, QrWriterInterface $qrWriter, FileStorageInterface $fileStorage, QrColorParserInterface $colorParser, PublicDirectoryResolver $publicResolver, UrlBuilder $urlBuilder, QrSubscriptionRepository $subscriptionRepository)
     {
         parent::__construct($logger, $qrCodeRepository, $settings);
         $this->qrWriter = $qrWriter;
@@ -31,6 +33,7 @@ class EditQrCodeAction extends QrCodeAction
         $this->colorParser = $colorParser;
         $this->publicResolver = $publicResolver;
         $this->urlBuilder = $urlBuilder;
+        $this->subscriptionRepository = $subscriptionRepository;
     }
 
     protected function action(): Response
@@ -43,7 +46,13 @@ class EditQrCodeAction extends QrCodeAction
         $foreground = isset($data['foreground']) ? trim((string)$data['foreground']) : null;
         $background = isset($data['background']) ? trim((string)$data['background']) : null;
 
-        if ($target === null && $name === null && $foreground === null && $background === null) {
+        try {
+            $subscriberIds = $this->parseSubscriberUserIds($data);
+        } catch (\InvalidArgumentException $e) {
+            return $this->respondWithData(['error' => $e->getMessage()], 400);
+        }
+
+        if ($target === null && $name === null && $foreground === null && $background === null && $subscriberIds === null) {
             return $this->respondWithData(['error' => 'No fields to update'], 400);
         }
 
@@ -137,6 +146,46 @@ class EditQrCodeAction extends QrCodeAction
             'images_present' => true,
         ];
 
+        if ($subscriberIds !== null) {
+            $this->syncSubscriptions($qr->getId() ?? $id, $subscriberIds);
+        }
+
         return $this->respondWithData($data, 200);
+    }
+
+    /**
+     * @param int[] $subscriberIds
+     */
+    private function syncSubscriptions(int $qrId, array $subscriberIds): void
+    {
+        $current = $this->subscriptionRepository->listByQrCode($qrId);
+        $currentIds = array_map(static fn($sub) => $sub->getUserId(), $current);
+
+        $toAdd = array_values(array_diff($subscriberIds, $currentIds));
+        $toRemove = array_values(array_diff($currentIds, $subscriberIds));
+
+        foreach ($toRemove as $userId) {
+            try {
+                $this->subscriptionRepository->delete($qrId, (int)$userId);
+            } catch (\Throwable $e) {
+                $this->logger->warning('Failed to remove QR subscription', [
+                    'qrcode_id' => $qrId,
+                    'user_id' => (int)$userId,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        foreach ($toAdd as $userId) {
+            try {
+                $this->subscriptionRepository->create($qrId, (int)$userId);
+            } catch (\Throwable $e) {
+                $this->logger->warning('Failed to add QR subscription', [
+                    'qrcode_id' => $qrId,
+                    'user_id' => (int)$userId,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
     }
 }

@@ -17,6 +17,7 @@ export default function Sidebar() {
   const items: Item[] = [...baseItems]
   if (isAdmin()) {
     items.push({ to: '/users', label: 'Users' })
+    items.push({ to: '/report-settings', label: 'Reportes' })
   }
 
   return (

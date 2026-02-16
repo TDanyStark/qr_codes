@@ -96,6 +96,10 @@ export function useCreateQrCode({ onCreated }: UseCreateQrCodeParams = {}): UseC
         foreground: formData.foreground,
         background: formData.background,
         format: "png",
+        subscriber_user_ids:
+          formData.subscriber_user_ids.length > 0
+            ? formData.subscriber_user_ids
+            : undefined,
       };
 
       const res = await axios.post("/api/qrcodes", payload, {

@@ -6,9 +6,11 @@ import { memo, useEffect, useState } from "react";
 interface QrFormProps {
   formData: QrFormData;
   updateField: <K extends keyof QrFormData>(key: K, value: QrFormData[K]) => void;
+  users?: Array<{ id: number; name: string; email: string; rol?: string }>;
+  loadingUsers?: boolean;
 }
 
-export const QrForm = memo(function QrForm({ formData, updateField }: QrFormProps) {
+export const QrForm = memo(function QrForm({ formData, updateField, users = [], loadingUsers = false }: QrFormProps) {
   const [foregroundHex, setForegroundHex] = useState(formData.foreground);
   const [backgroundHex, setBackgroundHex] = useState(formData.background);
 
@@ -20,6 +22,15 @@ export const QrForm = memo(function QrForm({ formData, updateField }: QrFormProp
   }, [formData.background]);
 
   const isValidHex = (v: string) => /^#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/.test(v);
+
+  const toggleSubscriber = (userId: number) => {
+    const current = formData.subscriber_user_ids;
+    if (current.includes(userId)) {
+      updateField("subscriber_user_ids", current.filter((id) => id !== userId));
+    } else {
+      updateField("subscriber_user_ids", [...current, userId]);
+    }
+  };
 
   return (
     <div className="space-y-4 mb-2 ">
@@ -99,6 +110,32 @@ export const QrForm = memo(function QrForm({ formData, updateField }: QrFormProp
             />
           </div>
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Notificar a</Label>
+        {loadingUsers ? (
+          <div className="text-sm text-muted-foreground">Cargando usuarios...</div>
+        ) : (
+          <div className="border border-border rounded-md p-2 max-h-48 overflow-auto space-y-2">
+            {users.length === 0 ? (
+              <div className="text-sm text-muted-foreground">No hay usuarios disponibles.</div>
+            ) : (
+              users.map((user) => (
+                <label key={user.id} className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4"
+                    checked={formData.subscriber_user_ids.includes(user.id)}
+                    onChange={() => toggleSubscriber(user.id)}
+                  />
+                  <span className="font-medium text-foreground">{user.name}</span>
+                  <span className="text-muted-foreground">{user.email}</span>
+                </label>
+              ))
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

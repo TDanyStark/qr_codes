@@ -52,6 +52,7 @@ export function useEditQrCode({
     name: "",
     foreground: "#000000",
     background: "#ffffff",
+    subscriber_user_ids: [],
   });
   const [loading, setLoading] = useState(false);
   const [links, setLinks] = useState<QrLinks>({});
@@ -66,6 +67,7 @@ export function useEditQrCode({
         name: qr.name ?? "",
         foreground: qr.foreground ?? "#000000",
         background: qr.background ?? "#ffffff",
+        subscriber_user_ids: [],
       });
       // Try to fetch QR details (including links) from backend so we show exact preview
       (async () => {
@@ -123,6 +125,23 @@ export function useEditQrCode({
           }
         } catch {
           // ignore - keep optimistic/fallback links
+        }
+
+        try {
+          const tokenAuth = localStorage.getItem("token");
+          const res = await axios.get(`/api/qrcodes/${qr.id}/subscriptions`, {
+            headers: tokenAuth ? { Authorization: `Bearer ${tokenAuth}` } : {},
+          });
+          const data = res?.data as { data?: { user_ids?: number[] }; user_ids?: number[] };
+          const ids = data?.data?.user_ids ?? data?.user_ids ?? [];
+          if (Array.isArray(ids)) {
+            setFormData((prev) => ({
+              ...prev,
+              subscriber_user_ids: ids.map((id) => Number(id)).filter((id) => id > 0),
+            }));
+          }
+        } catch {
+          // ignore subscription load errors
         }
       })();
       setCopied(false);
@@ -182,6 +201,7 @@ export function useEditQrCode({
         foreground: formData.foreground,
         background: formData.background,
         format: "png",
+        subscriber_user_ids: formData.subscriber_user_ids,
       };
 
       // Try regenerate endpoint (preferred). If it doesn't exist, fall back to GET to fetch updated links.

@@ -3,6 +3,7 @@ export interface QrFormData {
   name: string;
   foreground: string;
   background: string;
+  subscriber_user_ids: number[];
 }
 
 export interface QrLinks {
@@ -16,4 +17,5 @@ export const defaultFormData: QrFormData = {
   name: "",
   foreground: "#000000",
   background: "#ffffff",
+  subscriber_user_ids: [],
 };

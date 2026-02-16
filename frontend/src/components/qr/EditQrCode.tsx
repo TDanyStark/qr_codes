@@ -12,6 +12,7 @@ import { QrResultLink } from "@/components/createQr/QrResultLink";
 import { QrPreview } from "@/components/createQr/QrPreview";
 import { useEditQrCode } from "./useEditQrCode";
 import type { Qr } from "./useQRCodes";
+import useSubscriberUsers from "./useSubscriberUsers";
 
 interface Props {
   qr: Qr | null;
@@ -33,6 +34,7 @@ export default function EditQrCode({ qr, onClose, onUpdated }: Props) {
     handleClose,
     copyRedirect,
   } = useEditQrCode({ qr, onUpdated });
+  const { users, loading: loadingUsers } = useSubscriberUsers(open);
 
   return (
     <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) onClose?.(); }}>
@@ -44,7 +46,12 @@ export default function EditQrCode({ qr, onClose, onUpdated }: Props) {
         <div className="overflow-auto flex-1 min-h-0">
           <form id="edit-qr-form" onSubmit={handleSubmit} className="p-1 flex flex-col md:flex-row gap-6">
             <div className="flex-1 flex flex-col gap-4">
-              <QrForm formData={formData} updateField={updateField} />
+              <QrForm
+                formData={formData}
+                updateField={updateField}
+                users={users}
+                loadingUsers={loadingUsers}
+              />
               <div>
                 <hr />
                 <p className="mt-2">result</p>

@@ -12,6 +12,7 @@ import { useCreateQrCode } from "./createQr/useCreateQrCode";
 import { QrForm } from "./createQr/QrForm";
 import { QrResultLink } from "./createQr/QrResultLink";
 import { QrPreview } from "./createQr/QrPreview";
+import useSubscriberUsers from "./qr/useSubscriberUsers";
 
 interface CreateQrCodeProps {
   onQrCreated?: () => void;
@@ -32,6 +33,7 @@ export default function CreateQrCode({ onQrCreated }: CreateQrCodeProps) {
     copied,
     copyRedirect,
   } = useCreateQrCode({ onCreated: onQrCreated });
+  const { users, loading: loadingUsers } = useSubscriberUsers(open);
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
@@ -51,7 +53,12 @@ export default function CreateQrCode({ onQrCreated }: CreateQrCodeProps) {
             className="p-1 flex flex-col md:flex-row gap-6"
           >
             <div className="flex-1 flex flex-col gap-4">
-              <QrForm formData={formData} updateField={updateField} />
+              <QrForm
+                formData={formData}
+                updateField={updateField}
+                users={users}
+                loadingUsers={loadingUsers}
+              />
               <div>
                 <hr />
                 <p className="mt-2">result</p>

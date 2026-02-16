@@ -6,11 +6,18 @@ namespace App\Domain\ReportSettings;
 
 interface ReportSettingsRepository
 {
+    /**
+     * @return ReportSettings[]
+     */
+    public function listAll(): array;
+
     public function getActive(): ?ReportSettings;
 
     public function findById(int $id): ?ReportSettings;
 
     public function save(ReportSettings $settings): ReportSettings;
+
+    public function setActive(int $id): void;
 
     public function updateLastRunAt(int $id, \DateTimeInterface $lastRunAt): void;
 }
