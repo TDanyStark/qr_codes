@@ -60,7 +60,7 @@ class PdoScanRepository implements ScanRepository
         return $items;
     }
 
-    public function dailyCounts(int $qrCodeId, int $days = 30, ?string $city = null): array
+    public function dailyCounts(int $qrCodeId, int $days = 365, ?string $city = null): array
     {
         if ($city === null) {
             $sql = 'SELECT DATE(scanned_at) as day, COUNT(*) as cnt FROM scans WHERE qrcode_id = :id AND scanned_at >= DATE_SUB(CURRENT_DATE(), INTERVAL :days DAY) GROUP BY DATE(scanned_at) ORDER BY day ASC';

@@ -38,7 +38,7 @@ class StatsQrCodeAction extends Action
         $city = isset($queryParams['city']) && $queryParams['city'] !== '' ? (string)$queryParams['city'] : null;
 
         // Use ScanRepository to fetch aggregated data (optionally filtered by city)
-        $daily = $this->scanRepository->dailyCounts($id, 30, $city);
+        $daily = $this->scanRepository->dailyCounts($id, 365, $city);
         $countries = $this->scanRepository->countryBreakdown($id, 10, $city);
         $cities = $this->scanRepository->cityBreakdown($id, 20, null); // top cities (no country filter by default)
         $total = $this->scanRepository->totalCount($id, $city);

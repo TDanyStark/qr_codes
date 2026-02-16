@@ -19,7 +19,7 @@ interface ScanRepository
      * Optionally filter by city.
      * @return array{day: string, cnt: int}[]
      */
-    public function dailyCounts(int $qrCodeId, int $days = 30, ?string $city = null): array;
+    public function dailyCounts(int $qrCodeId, int $days = 365, ?string $city = null): array;
 
     /**
      * Return country breakdown for given qrcode id.
