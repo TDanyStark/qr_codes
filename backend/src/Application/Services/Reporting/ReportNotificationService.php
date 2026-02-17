@@ -113,6 +113,7 @@ class ReportNotificationService
 
             $attachments = [];
             $qrSummaries = [];
+            $csvRows = [];
 
             foreach ($userSubscriptions as $subscription) {
                 $qrId = $subscription->getQrCodeId();
@@ -129,20 +130,19 @@ class ReportNotificationService
                 $qrName = $qr->getName() ?: 'QR #' . $qrId;
 
                 $scans = $this->scanRepository->findByQrCodeInRange($qrId, $rangeStartUtc, $rangeEndUtc, 10000);
-                $csv = $this->buildCsv($scans);
-
-                $filename = sprintf(
-                    'qrcode_%d_scans_%s_%s.csv',
-                    $qrId,
-                    $range['start']->format('Ymd'),
-                    $range['end']->format('Ymd')
-                );
-
-                $attachments[] = [
-                    'filename' => $filename,
-                    'content' => $csv,
-                    'mime' => 'text/csv',
-                ];
+                foreach ($scans as $scan) {
+                    if (!is_object($scan) || !method_exists($scan, 'toArray')) {
+                        continue;
+                    }
+                    $row = $scan->toArray();
+                    $csvRows[] = [
+                        'qr_name' => $qrName,
+                        'qrcode_id' => $qrId,
+                        'scanned_at' => $row['scanned_at'] ?? null,
+                        'city' => $row['city'] ?? null,
+                        'country' => $row['country'] ?? null,
+                    ];
+                }
 
                 $qrSummaries[] = [
                     'id' => $qrId,
@@ -154,6 +154,20 @@ class ReportNotificationService
 
             if (count($qrSummaries) === 0) {
                 continue;
+            }
+
+            if (count($csvRows) > 0) {
+                $csv = $this->buildUserCsv($csvRows);
+                $filename = sprintf(
+                    'qrcodes_scans_%s_%s.csv',
+                    $range['start']->format('Ymd'),
+                    $range['end']->format('Ymd')
+                );
+                $attachments[] = [
+                    'filename' => $filename,
+                    'content' => $csv,
+                    'mime' => 'text/csv',
+                ];
             }
 
             $subject = $this->buildSubject($settings, $range['start'], $range['end']);
@@ -260,7 +274,7 @@ class ReportNotificationService
             '<p>Resumen de tus QRs para el periodo ' . $rangeLabel . ':</p>' .
             '<ul>' . $itemsHtml . '</ul>' .
             $lookerHtml .
-            '<p>Se adjunta un CSV con el detalle de scans por QR.</p>';
+            '<p>Se adjunta un CSV con el detalle de scans de todos tus QRs.</p>';
     }
 
     private function buildSubject(ReportSettings $settings, \DateTimeImmutable $start, \DateTimeImmutable $end): string
@@ -270,29 +284,25 @@ class ReportNotificationService
     }
 
     /**
-     * @param array<int, \App\Domain\Scan\Scan> $scans
+     * @param array<int, array{qr_name:string,qrcode_id:int,scanned_at:scalar|null,city:scalar|null,country:scalar|null}> $rows
      */
-    private function buildCsv(array $scans): string
+    private function buildUserCsv(array $rows): string
     {
-        $headers = ['id', 'qrcode_id', 'scanned_at', 'ip', 'user_agent', 'city', 'country'];
+        $headers = ['qr_name', 'qrcode_id', 'scanned_at', 'city', 'country'];
         $lines = [implode(',', $headers)];
 
-            foreach ($scans as $scan) {
-                if (!is_object($scan) || !method_exists($scan, 'toArray')) {
-                    continue;
-            }
-            $row = $scan->toArray();
-                $escaped = array_map(function ($value) {
-                    if ($value === null) {
-                        return '';
-                    }
-                    $str = (string)$value;
-                    $str = str_replace('"', '""', $str);
-                    if (preg_match('/[",\n\r,]/', $str)) {
-                        return '"' . $str . '"';
+        foreach ($rows as $row) {
+            $escaped = array_map(function ($value) {
+                if ($value === null) {
+                    return '';
+                }
+                $str = (string)$value;
+                $str = str_replace('"', '""', $str);
+                if (preg_match('/[",\n\r,]/', $str)) {
+                    return '"' . $str . '"';
                 }
                 return $str;
-            }, [$row['id'], $row['qrcode_id'], $row['scanned_at'], $row['ip'], $row['user_agent'], $row['city'], $row['country']]);
+            }, [$row['qr_name'], $row['qrcode_id'], $row['scanned_at'], $row['city'], $row['country']]);
 
             $lines[] = implode(',', $escaped);
         }
