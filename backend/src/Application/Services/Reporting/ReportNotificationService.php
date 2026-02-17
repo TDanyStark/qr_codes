@@ -92,12 +92,22 @@ class ReportNotificationService
             $subsByUser[$subscription->getUserId()][] = $subscription;
         }
 
+        $this->logger->info('ReportNotificationService: subscriptions grouped', [
+            'users' => array_keys($subsByUser),
+            'total_subscriptions' => count($subscriptions),
+        ]);
+
         $sentCount = 0;
         foreach ($subsByUser as $userId => $userSubscriptions) {
             try {
+                $this->logger->info('ReportNotificationService: loading user', ['user_id' => $userId]);
                 $user = $this->userRepository->findUserOfId((int)$userId);
             } catch (\Throwable $e) {
-                $this->logger->warning('ReportNotificationService: user not found', ['user_id' => $userId]);
+                $this->logger->warning('ReportNotificationService: user not found', [
+                    'user_id' => $userId,
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                ]);
                 continue;
             }
 

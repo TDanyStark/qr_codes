@@ -58,7 +58,7 @@ class PdoUserRepository implements UserRepository
      */
     public function findUserOfId(int $id): User
     {
-        $stmt = $this->pdo->prepare('SELECT id, name, email, rol, codigo, fecha_expedicion, created_at, password FROM users WHERE id = :id');
+        $stmt = $this->pdo->prepare('SELECT id, name, email, rol, codigo, fecha_expedicion, created_at FROM users WHERE id = :id');
         $stmt->execute(['id' => $id]);
         $row = $stmt->fetch();
 
