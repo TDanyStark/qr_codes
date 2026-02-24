@@ -196,7 +196,7 @@ export default function QrCodeStatsPage() {
         </Breadcrumb>
       </div>
 
-      <h1 className="text-3xl font-semibold mb-4">Stats for QR {id}</h1>
+      <h1 className="text-3xl font-semibold mb-4">Stats for QR {id} - {String(data?.qr?.name ?? "Unknown")}</h1>
 
       <div className="mb-4">
         <Button onClick={handleExportCsv} size="sm" variant="outline">
