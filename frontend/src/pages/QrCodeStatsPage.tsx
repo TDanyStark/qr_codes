@@ -220,7 +220,7 @@ export default function QrCodeStatsPage() {
                   <LineChart data={dailySeries}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="day" tick={{ fill: "#cbd5e1" }} />
-                    <YAxis tick={{ fill: "#cbd5e1" }} />
+                    <YAxis tick={{ fill: "#cbd5e1" }} allowDecimals={false} />
                     <Tooltip />
                     <Line
                       type="monotone"
