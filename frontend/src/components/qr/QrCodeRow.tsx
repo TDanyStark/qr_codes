@@ -11,6 +11,7 @@ export type Qr = {
   token: string;
   name?: string | null;
   target_url: string;
+  updated_at: string;
   owner_user_id?: number;
   owner_name?: string | null;
   owner_email?: string | null;
@@ -97,6 +98,7 @@ export default function QrCodeRow({ q, urlBaseToken, onEdit, onStats }: Props) {
       <TableCell>
         <Badge className={cls}>{q.owner_name ?? "Unknown"}</Badge>
       </TableCell>
+      <TableCell>{new Date(q.updated_at).toLocaleString()}</TableCell>
       <TableCell>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => onStats?.(q.id)}>

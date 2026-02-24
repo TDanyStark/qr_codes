@@ -45,6 +45,7 @@ export default function QrCodeList({
               <TableHead>Token</TableHead>
               <TableHead>Target</TableHead>
               <TableHead>Creator</TableHead>
+              <TableHead>Update At</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
