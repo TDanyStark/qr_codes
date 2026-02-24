@@ -37,21 +37,17 @@ export default function AppRoutes() {
         <Route
           path="/users"
           element={
-            <RequireAuth>
-              <RequireAdmin>
-                <UsersPage />
-              </RequireAdmin>
-            </RequireAuth>
+            <RequireAdmin>
+              <UsersPage />
+            </RequireAdmin>
           }
         />
         <Route
           path="/report-settings"
           element={
-            <RequireAuth>
-              <RequireAdmin>
-                <ReportSettingsPage />
-              </RequireAdmin>
-            </RequireAuth>
+            <RequireAdmin>
+              <ReportSettingsPage />
+            </RequireAdmin>
           }
         />
       </Route>
