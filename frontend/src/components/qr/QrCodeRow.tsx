@@ -25,7 +25,11 @@ type Props = {
 };
 
 export default function QrCodeRow({ q, urlBaseToken, onEdit, onStats }: Props) {
-  const copy = async (text: string, success = "Copiado", fail = "No se pudo copiar") => {
+  const copy = async (
+    text: string,
+    success = "Copiado",
+    fail = "No se pudo copiar",
+  ) => {
     try {
       await navigator.clipboard.writeText(text);
       toast.success(success);
@@ -98,7 +102,14 @@ export default function QrCodeRow({ q, urlBaseToken, onEdit, onStats }: Props) {
       <TableCell>
         <Badge className={cls}>{q.owner_name ?? "Unknown"}</Badge>
       </TableCell>
-      <TableCell>{new Date(q.updated_at).toLocaleString()}</TableCell>
+      <TableCell>
+        {new Date(q.updated_at.replace(" ", "T") + "Z").toLocaleString(
+          "en-US",
+          {
+            timeZone: "America/Bogota",
+          },
+        )}
+      </TableCell>
       <TableCell>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => onStats?.(q.id)}>
