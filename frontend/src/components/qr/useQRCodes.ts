@@ -50,9 +50,35 @@ export default function useQRCodes(initial?: {
 }) {
   // Only control params (page, perPage, query). Data comes from react-query.
   const [urlBaseToken, setUrlBaseToken] = useState<string | null>(null); // kept separately in case API omite en una respuesta
-  const [page, setPage] = useState<number>(initial?.page ?? 1);
-  const [perPage, setPerPage] = useState<number>(initial?.perPage ?? 10);
-  const [query, setQuery] = useState<string>(initial?.query ?? "");
+  // Initialize from URL search params when available so back/forward preserves state
+  const parseInitialFromUrl = () => {
+    const params = new URLSearchParams(window.location.search);
+    const parsedPage = Number(params.get("page"));
+    const parsedPerPage = Number(params.get("per_page"));
+    const parsedQuery = params.get("query") ?? "";
+
+    const pageInit =
+      typeof initial?.page === "number"
+        ? initial!.page
+        : Number.isFinite(parsedPage) && parsedPage > 0
+        ? parsedPage
+        : 1;
+    const perPageInit =
+      typeof initial?.perPage === "number"
+        ? initial!.perPage
+        : Number.isFinite(parsedPerPage) && parsedPerPage > 0
+        ? parsedPerPage
+        : 10;
+    const queryInit = typeof initial?.query === "string" ? initial!.query : parsedQuery;
+
+    return { pageInit, perPageInit, queryInit };
+  };
+
+  const { pageInit, perPageInit, queryInit } = parseInitialFromUrl();
+
+  const [page, setPage] = useState<number>(pageInit);
+  const [perPage, setPerPage] = useState<number>(perPageInit);
+  const [query, setQuery] = useState<string>(queryInit);
 
   const queryClient = useQueryClient();
 
@@ -150,6 +176,23 @@ export default function useQRCodes(initial?: {
   useEffect(() => {
     pushUrl(page, query, perPage);
   }, [page, perPage, query, pushUrl]);
+
+  // Keep state in sync when user navigates back/forward (popstate)
+  useEffect(() => {
+    const onPopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const p = Number(params.get("page"));
+      const pp = Number(params.get("per_page"));
+      const q = params.get("query") ?? "";
+
+      if (Number.isFinite(p) && p > 0 && p !== page) setPage(p);
+      if (Number.isFinite(pp) && pp > 0 && pp !== perPage) setPerPage(pp);
+      if (q !== query) setQuery(q);
+    };
+
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, [page, perPage, query]);
 
   const updatePerPage = (n: number) => {
     setPerPage(n);
